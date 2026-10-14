@@ -120,11 +120,6 @@ def load_opportunities():
     return data
 
 
-@st.cache_data
-def cached_opportunities():
-    return load_opportunities()
-
-
 def safe(value):
     return html.escape(str(value), quote=True)
 
@@ -229,7 +224,9 @@ def render_card(opp, card_index, saved_names):
 
 
 try:
-    opportunities = cached_opportunities()
+    # This file is small, so read it on each rerun. Caching without a file
+    # timestamp can leave the app showing an older directory count after edits.
+    opportunities = load_opportunities()
 except RuntimeError as error:
     st.error(str(error))
     st.stop()
@@ -297,8 +294,7 @@ elif sort_order == "Cost lowest":
     results = sorted(results, key=lambda opp: (not opp["cost_known"], opp["cost"] if opp["cost_known"] else float("inf"), opp["deadline"]))
 
 count = len(results)
-phrase = "opportunity" if count == 1 else "opportunities"
-st.markdown(f'<div class="result-stat"><strong>{count} of {len(opportunities)} {phrase}</strong> match your current profile</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="result-stat"><strong>{len(opportunities)} opportunities listed</strong> · {count} currently fit your filters</div>', unsafe_allow_html=True)
 
 closing = [opp for opp in results if 0 <= (opp["deadline"] - TODAY).days < 14]
 if closing:
@@ -322,6 +318,7 @@ active_relax = [label for _, label, state_key, _ in relax_options if st.session_
 with st.container(key="relaxers"):
     if any(filter_counts[key] for key, _, _, _ in relax_options) or active_relax:
         st.markdown('<div class="compact-note"><strong>Try widening your search</strong></div>', unsafe_allow_html=True)
+        st.caption("Counts are independent and may overlap when a listing misses more than one filter.")
         relax_cols = st.columns(3)
         for col, (count_key, label, state_key, action) in zip(relax_cols, relax_options):
             if filter_counts[count_key] or st.session_state.get(state_key, False):
