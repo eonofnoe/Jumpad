@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import streamlit as st
-from matching import MAX_SCORE, match_opportunities, money
+from matching import MAX_SCORE, analyze_opportunities, money
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "opportunities.json"
@@ -50,6 +50,14 @@ st.markdown("""
 .stat-icon { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:#edf5ff; color:var(--accent); font-size:1.05rem; font-weight:700; margin-bottom:.8rem; }
 .stat strong { display:block; color:var(--text); font-size:1rem; font-weight:600; margin-bottom:.25rem; }
 .stat span { color:var(--secondary); font-size:.82rem; line-height:1.45; }
+.live-summary { background:#fff; border:1px solid var(--border); border-radius:14px; padding:1.15rem 1.3rem; margin:1.6rem 0 .8rem; box-shadow:0 8px 20px rgba(0,0,0,.04); }
+.live-summary strong { display:block; color:var(--text); font-size:1.25rem; letter-spacing:-.02em; }
+.live-summary span { display:block; color:var(--secondary); font-size:.84rem; margin-top:.2rem; }
+.filter-reasons { display:flex; flex-wrap:wrap; gap:.45rem; margin:.75rem 0; }
+.filter-reason { padding:.36rem .62rem; background:#f2f2f4; color:#515158; border-radius:99px; font-size:.76rem; }
+.eligibility { margin:.75rem 0 1.1rem; padding:.95rem 1rem; background:#f4f8fd; border:1px solid #dce9f8; border-radius:12px; color:#3a3a3c; }
+.eligibility-title { font-weight:650; margin-bottom:.35rem; }
+.preference-reason { margin-top:.9rem; background:#f1f6fc; border-left:3px solid #8bb9e8; border-radius:0 9px 9px 0; padding:.72rem .85rem; color:#3a5065; font-size:.82rem; line-height:1.5; }
 .section-heading { display:flex; align-items:baseline; gap:.65rem; margin:1.9rem 0 .25rem; }
 .section-heading h2 { margin:0; font-size:1.45rem; letter-spacing:-.025em; color:var(--text); font-weight:600; }
 .section-heading span { color:var(--secondary); font-size:.86rem; }
@@ -137,9 +145,12 @@ def render_card(opp):
         <div class="meta-item"><div class="meta-label">Location</div><div class="meta-value">{safe(opp['location'])}</div></div>
         <div class="meta-item"><div class="meta-label">Cost · deadline</div><div class="meta-value">{safe(money(opp['cost']))} · {safe(deadline)}</div></div>
       </div>
-      <div class="reason"><strong>Why this appears:</strong> {safe(reasons)}</div>
+      <div class="preference-reason"><strong>Why it fits your interests:</strong> {safe(reasons)}</div>
     </article>
     """, unsafe_allow_html=True)
+    with st.expander("Why this appears", expanded=False):
+        for check in opp["eligibility_checks"]:
+            st.markdown(f"✓ {safe(check)}")
     st.link_button("View opportunity details ↗", opp["link"])
 
 
@@ -157,19 +168,32 @@ st.markdown("""
 </section>
 """, unsafe_allow_html=True)
 
+if "selected_subjects" not in st.session_state:
+    st.session_state["selected_subjects"] = ["Computer Science"]
+
 with st.sidebar:
     st.markdown("### Build your profile")
-    st.caption("Tell us what you’re looking for. We’ll check eligibility first, then rank the best fits.")
+    st.caption("Results update as you adjust eligibility filters. Interests help rank the eligible options.")
     name = st.text_input("Your name (optional)", max_chars=60, placeholder="e.g. Alex")
     grade = st.selectbox("Current grade", [8, 9, 10, 11, 12], index=1)
-    interest = st.selectbox("Main interest", SUBJECTS)
+    st.markdown("**Interests to prioritize**")
+    select_all_col, clear_all_col = st.columns(2)
+    if select_all_col.button("Select all", use_container_width=True):
+        st.session_state["selected_subjects"] = SUBJECTS.copy()
+    if clear_all_col.button("Clear all", use_container_width=True):
+        st.session_state["selected_subjects"] = []
+    selected_subjects = st.multiselect(
+        "Choose one or more subjects",
+        SUBJECTS,
+        key="selected_subjects",
+        label_visibility="collapsed",
+        placeholder="Select interests",
+    )
     preferred_format = st.selectbox("Preferred format", FORMATS, help="Choose Both if you have no format preference.")
     chosen_type = st.selectbox("Opportunity type", TYPES)
     budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d")
     st.markdown('<div class="slider-limits"><span>$0</span><span>$6,000</span></div>', unsafe_allow_html=True)
-    find_button = st.button("Show my matches", type="primary", use_container_width=True)
-    st.markdown("---")
-    st.caption("Matches are based on the information in each opportunity listing. Confirm current details with the organizer before applying.")
+    st.caption("Jumpad filters by grade, budget, deadline, and type. Check organizer pages for other qualifications, such as prior experience.")
 
 st.markdown('<div class="intro-row"><div><h2>Find the opportunity that fits</h2><p>Use your profile to turn a long list into a clear next step.</p></div></div>', unsafe_allow_html=True)
 st.markdown(f"""
@@ -180,24 +204,55 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-if find_button:
-    results = match_opportunities(opportunities, grade, budget, interest, preferred_format, chosen_type)
-    st.session_state["results"] = results
-    st.session_state["search_name"] = name.strip()
+results, filter_counts = analyze_opportunities(
+    opportunities, grade, budget, selected_subjects, preferred_format, chosen_type
+)
+match_label = "opportunity" if len(results) == 1 else "opportunities"
+st.markdown(f"""
+<div class="live-summary">
+  <strong>{len(results)} {match_label} meet your eligibility filters</strong>
+  <span>Updates as you change grade, budget, deadline, or type. Subject interests and format affect ranking.</span>
+</div>
+""", unsafe_allow_html=True)
 
-if "results" in st.session_state:
-    results = st.session_state["results"]
-    greeting = f" for {safe(st.session_state['search_name'])}" if st.session_state.get("search_name") else ""
-    st.markdown(f'<div class="section-heading"><h2>Your matches{greeting}</h2><span>{len(results)} found</span></div>', unsafe_allow_html=True)
-    if results:
-        st.caption(f"Ranked by fit · Match score out of {MAX_SCORE}: subject fit (3) and preferred format (2).")
-        for opp in results:
-            render_card(opp)
-    else:
-        st.info("No opportunities meet all your selected eligibility filters. Try raising your budget, changing the grade or type, or broadening your preferences.")
+exclusions = []
+for key, label in [
+    ("below_grade", "require a higher grade"),
+    ("over_budget", "over your budget"),
+    ("deadline_passed", "past deadline"),
+    ("different_type", "different type"),
+]:
+    if filter_counts[key]:
+        exclusions.append(f'<span class="filter-reason">{filter_counts[key]} {label}</span>')
+if exclusions:
+    st.markdown(
+        '<div class="filter-reasons"><strong>Why listings are filtered:</strong> '
+        + "".join(exclusions)
+        + '</div><div class="meta-label">Counts may overlap when a listing misses more than one requirement.</div>',
+        unsafe_allow_html=True,
+    )
+elif filter_counts["valid"]:
+    st.caption("All valid listings meet the selected grade, budget, deadline, and type requirements.")
+if filter_counts["invalid"]:
+    st.caption(f"{filter_counts['invalid']} listing(s) need data review and could not be evaluated.")
+
+st.markdown(f'<div class="section-heading"><h2>Eligible opportunities</h2><span>Ranked by your selected interests</span></div>', unsafe_allow_html=True)
+if selected_subjects:
+    st.caption(f"Subject priorities: {', '.join(selected_subjects)} · Match score out of {MAX_SCORE} includes subject fit (3) and format fit (2).")
 else:
-    st.markdown('<div class="section-heading"><h2>Ready when you are</h2><span>Set your profile in the sidebar</span></div>', unsafe_allow_html=True)
-    st.info("Choose your interests and budget, then select **Show my matches** to see opportunities you’re eligible for.")
+    st.caption(f"No subject priorities selected · Match score out of {MAX_SCORE} can include format fit (2). All eligible opportunities remain visible.")
+
+if results:
+    st.markdown(f"""
+    <div class="eligibility">
+      <div class="eligibility-title">Why these opportunities appear</div>
+      Each result below meets your selected minimum grade, budget, deadline, and opportunity type. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as prior experience; review each organizer page.
+    </div>
+    """, unsafe_allow_html=True)
+    for opp in results:
+        render_card(opp)
+else:
+    st.info("No opportunities meet all your eligibility filters. Try increasing your budget, choosing a different type or grade, or clearing an eligibility filter.")
 
 with st.expander("How matching works"):
-    st.write("We first filter by minimum grade, maximum cost, upcoming deadline, and selected opportunity type. Eligible listings can then earn 3 points for a subject match and up to 2 points for an Online or Onsite format match. Choosing Both means you have no format preference. Cost does not lower a match score.")
+    st.write("We first filter by minimum grade, maximum cost, upcoming deadline, and selected opportunity type. Eligible listings can then earn 3 points if they match any selected subject and up to 2 points for an Online or Onsite format match. Choosing Both means you have no format preference. Cost does not lower a match score.")
