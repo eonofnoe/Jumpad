@@ -37,7 +37,10 @@ def parse_opportunity(opp):
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.netloc:
         return None
-    return {"name":name.strip(), "grade":grade, "cost":cost, "deadline":deadline,
+    cost_basis = str(opp.get("CostBasis", "individual")).strip().lower()
+    grade_label = opp.get("GradeLabel") or f"Grade {grade}+"
+    return {"name":name.strip(), "grade":grade, "grade_label":grade_label,
+            "cost":cost, "cost_basis":cost_basis, "deadline":deadline,
             "format":fmt, "type":opp.get("Type", ""), "subjects":normalize_subjects(opp),
             "location":opp.get("Location", "Not specified"),
             "description":opp.get("Description", "Description not provided"), "link":url,
@@ -53,6 +56,7 @@ def analyze_opportunities(records, grade, budget, subjects, preferred_format, ch
         "valid": 0,
         "below_grade": 0,
         "over_budget": 0,
+        "budget_unconfirmed": 0,
         "deadline_passed": 0,
         "different_type": 0,
         "invalid": 0,
@@ -66,12 +70,13 @@ def analyze_opportunities(records, grade, budget, subjects, preferred_format, ch
         counts["valid"] += 1
 
         grade_ok = grade >= opp["grade"]
-        budget_ok = budget >= opp["cost"]
+        budget_ok = opp["cost_basis"] == "per team" or budget >= opp["cost"]
         deadline_ok = opp["deadline"] >= today
         type_ok = chosen_type == "Any" or chosen_type == opp["type"]
 
         counts["below_grade"] += not grade_ok
-        counts["over_budget"] += not budget_ok
+        counts["over_budget"] += opp["cost_basis"] != "per team" and not budget_ok
+        counts["budget_unconfirmed"] += opp["cost_basis"] == "per team" and grade_ok and deadline_ok and type_ok
         counts["deadline_passed"] += not deadline_ok
         counts["different_type"] += not type_ok
         if not (grade_ok and budget_ok and deadline_ok and type_ok):
@@ -79,9 +84,17 @@ def analyze_opportunities(records, grade, budget, subjects, preferred_format, ch
 
         matching_subjects = [subject for subject in selected_subjects if subject in opp["subjects"]]
         score, reasons = 0, []
+        if opp["grade"] == 0:
+            grade_check = f"The listing states {opp['grade_label']}; confirm any age or school-status rules with the organizer."
+        else:
+            grade_check = f"Your grade ({grade}) meets {opp['grade_label']}."
+        if opp["cost_basis"] == "per team":
+            budget_check = f"Team fee is {money(opp['cost'])}; your personal share is unknown, so confirm it with an advisor (your budget is {money(budget)})."
+        else:
+            budget_check = f"Cost ({money(opp['cost'])}) is within your budget ({money(budget)})."
         eligibility_checks = [
-            f"Your grade ({grade}) meets the minimum grade ({opp['grade']}).",
-            f"Cost ({money(opp['cost'])}) is within your budget ({money(budget)}).",
+            grade_check,
+            budget_check,
             f"Deadline ({opp['deadline'].isoformat()}) has not passed.",
         ]
         if chosen_type != "Any":
@@ -112,3 +125,8 @@ def match_opportunities(records, grade, budget, subject, preferred_format, chose
 
 def money(value):
     return "Free" if value == 0 else f"${value:,.0f}" if float(value).is_integer() else f"${value:,.2f}"
+
+
+def cost_label(opportunity):
+    amount = money(opportunity["cost"])
+    return f"{amount} per team" if opportunity.get("cost_basis") == "per team" else amount
