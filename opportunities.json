@@ -1,19 +1,25 @@
 [
   {
     "Name": "American Computer Science League (ACSL)",
-    "Subjects": ["Computer Science"],
+    "Subjects": [
+      "Computer Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
     "Location": "Online",
-    "Cost": 0,
+    "Cost": 175,
     "Deadline": "2026-12-31",
-    "Description": "A multi-division computer science competition for K-12 schools covering fundamental concepts from number systems to graph theory and programming.",
-    "Link": "https://www.acsl.org/"
+    "Description": "An online, multi-division computer science competition. For 2026–27, high-school division registration is handled by a team advisor, costs $175 per team, and closes December 31, 2026. Contest windows run October 2026 through May 2027.",
+    "Link": "https://www.acsl.org/Registration",
+    "CostBasis": "per team"
   },
   {
     "Name": "MIT THINK Scholars Program",
-    "Subjects": ["Engineering", "Science"],
+    "Subjects": [
+      "Engineering",
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Research",
     "Format": "Both",
@@ -25,7 +31,10 @@
   },
   {
     "Name": "BioEHSC High School Bioengineering Competition",
-    "Subjects": ["Engineering", "Science"],
+    "Subjects": [
+      "Engineering",
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Both",
@@ -37,7 +46,10 @@
   },
   {
     "Name": "American Association of Physics Teachers Photo Contest",
-    "Subjects": ["Physics", "Science"],
+    "Subjects": [
+      "Physics",
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -49,7 +61,9 @@
   },
   {
     "Name": "Stockholm Junior Water Prize",
-    "Subjects": ["Science"],
+    "Subjects": [
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Both",
@@ -61,7 +75,11 @@
   },
   {
     "Name": "Genius Olympiad",
-    "Subjects": ["Science", "Engineering", "Art and Design"],
+    "Subjects": [
+      "Science",
+      "Engineering",
+      "Art and Design"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Both",
@@ -73,7 +91,9 @@
   },
   {
     "Name": "Harvard MIT Mathematics Tournament (HMMT)",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Both",
@@ -85,7 +105,10 @@
   },
   {
     "Name": "Princeton University Physics Competition (PUPC)",
-    "Subjects": ["Physics", "Math"],
+    "Subjects": [
+      "Physics",
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -97,7 +120,10 @@
   },
   {
     "Name": "International Physics Olympiad Screening (USAPhO)",
-    "Subjects": ["Physics", "Science"],
+    "Subjects": [
+      "Physics",
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -109,7 +135,10 @@
   },
   {
     "Name": "American Astronomy and Astrophysics Olympiad (USAAAO)",
-    "Subjects": ["Science", "Physics"],
+    "Subjects": [
+      "Science",
+      "Physics"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -121,7 +150,9 @@
   },
   {
     "Name": "National Cyber Scholarship Foundation Contest",
-    "Subjects": ["Computer Science"],
+    "Subjects": [
+      "Computer Science"
+    ],
     "Grade": 9,
     "Type": "Scholarship",
     "Format": "Online",
@@ -133,7 +164,9 @@
   },
   {
     "Name": "PicoCTF Cybersecurity Competition",
-    "Subjects": ["Computer Science"],
+    "Subjects": [
+      "Computer Science"
+    ],
     "Grade": 9,
     "Type": "Hackathon",
     "Format": "Online",
@@ -145,7 +178,9 @@
   },
   {
     "Name": "Girls Who Code Summer Immersion Program",
-    "Subjects": ["Computer Science"],
+    "Subjects": [
+      "Computer Science"
+    ],
     "Grade": 9,
     "Type": "Summer Program",
     "Format": "Online",
@@ -157,7 +192,10 @@
   },
   {
     "Name": "Kode With Klossy Camp",
-    "Subjects": ["Computer Science", "AI"],
+    "Subjects": [
+      "Computer Science",
+      "AI"
+    ],
     "Grade": 8,
     "Type": "Summer Program",
     "Format": "Both",
@@ -169,7 +207,9 @@
   },
   {
     "Name": "Stanford Mathematics Camp (SUMaC)",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 10,
     "Type": "Summer Program",
     "Format": "Both",
@@ -181,7 +221,9 @@
   },
   {
     "Name": "MathILy - Serious Mathematics Infused with Levity",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Summer Program",
     "Format": "Onsite",
@@ -193,7 +235,9 @@
   },
   {
     "Name": "Program in Mathematics for Young Scientists (PROMYS)",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Summer Program",
     "Format": "Onsite",
@@ -205,7 +249,9 @@
   },
   {
     "Name": "Arnold O. Beckman High School Internship Program",
-    "Subjects": ["Science"],
+    "Subjects": [
+      "Science"
+    ],
     "Grade": 11,
     "Type": "Internship",
     "Format": "Onsite",
@@ -217,7 +263,10 @@
   },
   {
     "Name": "Navy Science and Engineering Apprenticeship Program (SEAP)",
-    "Subjects": ["Engineering", "Science"],
+    "Subjects": [
+      "Engineering",
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Internship",
     "Format": "Onsite",
@@ -229,7 +278,10 @@
   },
   {
     "Name": "NASA High School Internship Program",
-    "Subjects": ["Engineering", "Science"],
+    "Subjects": [
+      "Engineering",
+      "Science"
+    ],
     "Grade": 10,
     "Type": "Internship",
     "Format": "Both",
@@ -241,7 +293,10 @@
   },
   {
     "Name": "Air Force Research Laboratory (AFRL) Scholar Program",
-    "Subjects": ["Engineering", "Science"],
+    "Subjects": [
+      "Engineering",
+      "Science"
+    ],
     "Grade": 11,
     "Type": "Internship",
     "Format": "Onsite",
@@ -253,7 +308,10 @@
   },
   {
     "Name": "National Institute of Standards and Technology (SHIP)",
-    "Subjects": ["Science", "Engineering"],
+    "Subjects": [
+      "Science",
+      "Engineering"
+    ],
     "Grade": 11,
     "Type": "Internship",
     "Format": "Onsite",
@@ -265,7 +323,9 @@
   },
   {
     "Name": "High School Mathematical Contest in Modeling (HiMCM)",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -277,7 +337,9 @@
   },
   {
     "Name": "Fermat Math Contest (Waterloo)",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 11,
     "Type": "Competition",
     "Format": "Both",
@@ -289,7 +351,9 @@
   },
   {
     "Name": "Euclid Mathematics Contest",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 12,
     "Type": "Competition",
     "Format": "Both",
@@ -301,7 +365,9 @@
   },
   {
     "Name": "Caribou Mathematics Competition",
-    "Subjects": ["Math"],
+    "Subjects": [
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
@@ -313,7 +379,9 @@
   },
   {
     "Name": "FIRST Tech Challenge (FTC)",
-    "Subjects": ["Engineering"],
+    "Subjects": [
+      "Engineering"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Onsite",
@@ -325,7 +393,9 @@
   },
   {
     "Name": "VEX Robotics Competition",
-    "Subjects": ["Engineering"],
+    "Subjects": [
+      "Engineering"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Onsite",
@@ -336,32 +406,43 @@
     "Link": "https://www.vexrobotics.com/v5/competition"
   },
   {
-    "Name": "Technovation Girls",
-    "Subjects": ["AI", "Computer Science"],
-    "Grade": 8,
+    "Name": "Technovation Challenge (2026–27)",
+    "Subjects": [
+      "AI",
+      "Computer Science"
+    ],
+    "Grade": 0,
     "Type": "Competition",
     "Format": "Online",
     "Location": "Online",
     "Cost": 0,
-    "Deadline": "2027-03-18",
-    "Description": "A global tech entrepreneurship competition where young women build a mobile app or AI prototype to address a problem in their community.",
-    "Link": "https://technovationchallenge.org/"
+    "Deadline": "2027-03-11",
+    "Description": "Free global technology and entrepreneurship challenge for ages 8–18, with Girls and Co-ed tracks and teams of 1–5. Register by March 11, 2027; project submissions are due May 5, 2027.",
+    "Link": "https://technovationchallenge.org/competition/",
+    "GradeLabel": "Ages 8–18"
   },
   {
     "Name": "CyberPatriot National Youth Cyber Defense Competition",
-    "Subjects": ["Computer Science", "AI"],
+    "Subjects": [
+      "Computer Science",
+      "AI"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Online",
     "Location": "United States",
-    "Cost": 0,
+    "Cost": 225,
     "Deadline": "2026-10-01",
-    "Description": "The nation's largest youth cybersecurity contest putting high school teams in the position of newly hired IT professionals managing network systems.",
-    "Link": "https://www.uscyberpatriot.org/"
+    "Description": "Online cybersecurity defense competition for middle- and high-school teams. The 2026–27 high-school Open Division fee is $225 per team; team creation closed October 1, 2026. Fee waivers are available for some teams.",
+    "Link": "https://www.uscyberpatriot.org/competition/Competition-Overview/join-the-competition",
+    "CostBasis": "per team"
   },
   {
     "Name": "National Science Bowl",
-    "Subjects": ["Science", "Math"],
+    "Subjects": [
+      "Science",
+      "Math"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Onsite",
@@ -373,7 +454,9 @@
   },
   {
     "Name": "Envirothon Competition",
-    "Subjects": ["Science"],
+    "Subjects": [
+      "Science"
+    ],
     "Grade": 9,
     "Type": "Competition",
     "Format": "Both",
@@ -382,5 +465,38 @@
     "Deadline": "2027-01-30",
     "Description": "An environmental and natural resource competition for high school students testing knowledge in aquatic ecology, forestry, soils, and wildlife.",
     "Link": "https://envirothon.org/"
+  },
+  {
+    "Name": "Congressional App Challenge (2026)",
+    "Subjects": [
+      "Computer Science",
+      "Engineering",
+      "AI"
+    ],
+    "Grade": 6,
+    "GradeLabel": "Middle or high school (district rules apply)",
+    "Type": "Competition",
+    "Format": "Online",
+    "Location": "Participating U.S. congressional districts",
+    "Cost": 0,
+    "Deadline": "2026-10-26",
+    "Description": "Free app competition for middle- and high-school students in participating U.S. congressional districts. Students may enter individually or in teams of up to four. Official rules and the student registration page currently list different deadline times; verify the current time on the registration page.",
+    "Link": "https://www.congressionalappchallenge.us/students/student-registration/"
+  },
+  {
+    "Name": "Toshiba/NSTA ExploraVision",
+    "Subjects": [
+      "Science",
+      "Engineering"
+    ],
+    "Grade": 0,
+    "GradeLabel": "Grades K–12",
+    "Type": "Competition",
+    "Format": "Online",
+    "Location": "United States and Canada",
+    "Cost": 0,
+    "Deadline": "2027-01-27",
+    "Description": "Free science and technology competition for teams of 2–4 students in grades K–12. Teams choose a technology and envision its future; a coach submits the project online. Eligibility includes citizenship and residency requirements—check the official rules.",
+    "Link": "https://www.exploravision.org/faqs/"
   }
 ]
