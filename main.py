@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import streamlit as st
-from matching import MAX_SCORE, analyze_opportunities, money
+from matching import MAX_SCORE, analyze_opportunities, cost_label
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "opportunities.json"
@@ -141,9 +141,9 @@ def render_card(opp):
       <p class="card-desc">{safe(opp['description'])}</p>
       <div class="metadata">
         <div class="meta-item"><div class="meta-label">Subject</div><div class="meta-value">{safe(subjects)}</div></div>
-        <div class="meta-item"><div class="meta-label">Minimum grade</div><div class="meta-value">Grade {opp['grade']}+</div></div>
+        <div class="meta-item"><div class="meta-label">Minimum grade</div><div class="meta-value">{safe(opp['grade_label'])}</div></div>
         <div class="meta-item"><div class="meta-label">Location</div><div class="meta-value">{safe(opp['location'])}</div></div>
-        <div class="meta-item"><div class="meta-label">Cost · deadline</div><div class="meta-value">{safe(money(opp['cost']))} · {safe(deadline)}</div></div>
+        <div class="meta-item"><div class="meta-label">Cost · deadline</div><div class="meta-value">{safe(cost_label(opp))} · {safe(deadline)}</div></div>
       </div>
       <div class="preference-reason"><strong>Why it fits your interests:</strong> {safe(reasons)}</div>
     </article>
@@ -175,7 +175,7 @@ with st.sidebar:
     st.markdown("### Build your profile")
     st.caption("Results update as you adjust eligibility filters. Interests help rank the eligible options.")
     name = st.text_input("Your name (optional)", max_chars=60, placeholder="e.g. Alex")
-    grade = st.selectbox("Current grade", [8, 9, 10, 11, 12], index=1)
+    grade = st.selectbox("Current grade", list(range(6, 13)), index=3)
     st.markdown("**Interests to prioritize**")
     select_all_col, clear_all_col = st.columns(2)
     if select_all_col.button("Select all", use_container_width=True):
@@ -207,10 +207,10 @@ st.markdown(f"""
 results, filter_counts = analyze_opportunities(
     opportunities, grade, budget, selected_subjects, preferred_format, chosen_type
 )
-match_label = "opportunity" if len(results) == 1 else "opportunities"
+match_phrase = "opportunity fits" if len(results) == 1 else "opportunities fit"
 st.markdown(f"""
 <div class="live-summary">
-  <strong>{len(results)} {match_label} meet your eligibility filters</strong>
+  <strong>{len(results)} {match_phrase} your current filters</strong>
   <span>Updates as you change grade, budget, deadline, or type. Subject interests and format affect ranking.</span>
 </div>
 """, unsafe_allow_html=True)
@@ -233,10 +233,12 @@ if exclusions:
     )
 elif filter_counts["valid"]:
     st.caption("All valid listings meet the selected grade, budget, deadline, and type requirements.")
+if filter_counts["budget_unconfirmed"]:
+    st.caption(f"{filter_counts['budget_unconfirmed']} matching listing(s) have a per-team fee; your personal share is unknown, so confirm it with an advisor.")
 if filter_counts["invalid"]:
     st.caption(f"{filter_counts['invalid']} listing(s) need data review and could not be evaluated.")
 
-st.markdown(f'<div class="section-heading"><h2>Eligible opportunities</h2><span>Ranked by your selected interests</span></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="section-heading"><h2>Potential matches</h2><span>Ranked by your selected interests</span></div>', unsafe_allow_html=True)
 if selected_subjects:
     st.caption(f"Subject priorities: {', '.join(selected_subjects)} · Match score out of {MAX_SCORE} includes subject fit (3) and format fit (2).")
 else:
@@ -246,7 +248,7 @@ if results:
     st.markdown(f"""
     <div class="eligibility">
       <div class="eligibility-title">Why these opportunities appear</div>
-      Each result below meets your selected minimum grade, budget, deadline, and opportunity type. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as prior experience; review each organizer page.
+      Results meet the displayed grade, deadline, and type filters. Individual costs fit your budget; team-priced entries need an advisor to confirm your personal share. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as district eligibility or prior experience; review each organizer page.
     </div>
     """, unsafe_allow_html=True)
     for opp in results:
