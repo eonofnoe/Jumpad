@@ -26,7 +26,8 @@ def parse_opportunity(opp):
         return None
     if isinstance(grade, bool) or not isinstance(grade, int) or not 0 <= grade <= 12:
         return None
-    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
+    cost_known = cost is not None
+    if cost_known and (isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0):
         return None
     try:
         deadline = date.fromisoformat(deadline_raw)
@@ -37,10 +38,10 @@ def parse_opportunity(opp):
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.netloc:
         return None
-    cost_basis = str(opp.get("CostBasis", "individual")).strip().lower()
+    cost_basis = str(opp.get("CostBasis", "individual" if cost_known else "unknown")).strip().lower()
     grade_label = opp.get("GradeLabel") or f"Grade {grade}+"
     return {"name":name.strip(), "grade":grade, "grade_label":grade_label,
-            "cost":cost, "cost_basis":cost_basis, "deadline":deadline,
+            "cost":cost, "cost_basis":cost_basis, "cost_known":cost_known, "deadline":deadline,
             "format":fmt, "type":opp.get("Type", ""), "subjects":normalize_subjects(opp),
             "location":opp.get("Location", "Not specified"),
             "description":opp.get("Description", "Description not provided"), "link":url,
@@ -70,13 +71,14 @@ def analyze_opportunities(records, grade, budget, subjects, preferred_format, ch
         counts["valid"] += 1
 
         grade_ok = grade >= opp["grade"]
-        budget_ok = opp["cost_basis"] == "per team" or budget >= opp["cost"]
+        budget_confirm = opp["cost_basis"] in ("per team", "unknown") or not opp["cost_known"]
+        budget_ok = budget_confirm or budget >= opp["cost"]
         deadline_ok = opp["deadline"] >= today
         type_ok = chosen_type == "Any" or chosen_type == opp["type"]
 
         counts["below_grade"] += not grade_ok
-        counts["over_budget"] += opp["cost_basis"] != "per team" and not budget_ok
-        counts["budget_unconfirmed"] += opp["cost_basis"] == "per team" and grade_ok and deadline_ok and type_ok
+        counts["over_budget"] += not budget_confirm and not budget_ok
+        counts["budget_unconfirmed"] += budget_confirm and grade_ok and deadline_ok and type_ok
         counts["deadline_passed"] += not deadline_ok
         counts["different_type"] += not type_ok
         if not (grade_ok and budget_ok and deadline_ok and type_ok):
@@ -90,6 +92,8 @@ def analyze_opportunities(records, grade, budget, subjects, preferred_format, ch
             grade_check = f"Your grade ({grade}) meets {opp['grade_label']}."
         if opp["cost_basis"] == "per team":
             budget_check = f"Team fee is {money(opp['cost'])}; your personal share is unknown, so confirm it with an advisor (your budget is {money(budget)})."
+        elif not opp["cost_known"] or opp["cost_basis"] == "unknown":
+            budget_check = "The organizer page does not clearly state the entry cost; confirm the fee before applying."
         else:
             budget_check = f"Cost ({money(opp['cost'])}) is within your budget ({money(budget)})."
         eligibility_checks = [
@@ -128,5 +132,11 @@ def money(value):
 
 
 def cost_label(opportunity):
+    if not opportunity.get("cost_known", True) or opportunity.get("cost_basis") == "unknown":
+        return "Cost not confirmed"
     amount = money(opportunity["cost"])
-    return f"{amount} per team" if opportunity.get("cost_basis") == "per team" else amount
+    if opportunity.get("cost_basis") == "per team":
+        return f"{amount} per team"
+    if opportunity.get("cost_basis") == "per student":
+        return f"{amount} per student"
+    return amount
