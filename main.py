@@ -7,7 +7,7 @@ from matching import MAX_SCORE, analyze_opportunities, cost_label
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "opportunities.json"
-SUBJECTS = ["Computer Science", "Math", "Science", "Engineering", "Physics", "AI"]
+SUBJECTS = ["Computer Science", "Math", "Science", "Engineering", "Physics"]
 TYPES = ["Any", "Competition", "Summer Program", "Internship", "Research", "Scholarship", "Hackathon"]
 FORMATS = ["Both", "Online", "Onsite"]
 
@@ -170,6 +170,9 @@ st.markdown("""
 
 if "selected_subjects" not in st.session_state:
     st.session_state["selected_subjects"] = ["Computer Science"]
+else:
+    # Clear removed or renamed options from a profile saved by an older app version.
+    st.session_state["selected_subjects"] = [s for s in st.session_state["selected_subjects"] if s in SUBJECTS]
 
 with st.sidebar:
     st.markdown("### Build your profile")
@@ -234,7 +237,7 @@ if exclusions:
 elif filter_counts["valid"]:
     st.caption("All valid listings meet the selected grade, budget, deadline, and type requirements.")
 if filter_counts["budget_unconfirmed"]:
-    st.caption(f"{filter_counts['budget_unconfirmed']} matching listing(s) have a per-team fee; your personal share is unknown, so confirm it with an advisor.")
+    st.caption(f"{filter_counts['budget_unconfirmed']} matching listing(s) have a team fee or unconfirmed cost, so their price cannot be compared with your budget. Check the organizer page before applying.")
 if filter_counts["invalid"]:
     st.caption(f"{filter_counts['invalid']} listing(s) need data review and could not be evaluated.")
 
@@ -248,7 +251,7 @@ if results:
     st.markdown(f"""
     <div class="eligibility">
       <div class="eligibility-title">Why these opportunities appear</div>
-      Results meet the displayed grade, deadline, and type filters. Individual costs fit your budget; team-priced entries need an advisor to confirm your personal share. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as district eligibility or prior experience; review each organizer page.
+      Results meet the displayed grade, deadline, and type filters. Individual costs fit your budget; team-priced or unconfirmed fees need checking with the organizer. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as district eligibility or prior experience; review each organizer page.
     </div>
     """, unsafe_allow_html=True)
     for opp in results:
@@ -257,4 +260,4 @@ else:
     st.info("No opportunities meet all your eligibility filters. Try increasing your budget, choosing a different type or grade, or clearing an eligibility filter.")
 
 with st.expander("How matching works"):
-    st.write("We first filter by minimum grade, maximum cost, upcoming deadline, and selected opportunity type. Eligible listings can then earn 3 points if they match any selected subject and up to 2 points for an Online or Onsite format match. Choosing Both means you have no format preference. Cost does not lower a match score.")
+    st.write("We first filter by minimum grade, known individual costs within your budget, upcoming deadline, and selected opportunity type. Listings with a team fee or unconfirmed cost remain visible with a reminder to check the organizer's page. Eligible listings can then earn 3 points if they match any selected subject and up to 2 points for an Online or Onsite format match. Choosing Both means you have no format preference. Cost does not lower a match score.")
