@@ -6,6 +6,10 @@ from pathlib import Path
 import streamlit as st
 from matching import MAX_SCORE, analyze_opportunities, cost_label
 
+git apply "/Users/noekoumbem/Documents/Codex/2026-10-08/7/jumpad-ui-fixes.patch"
+git add main.py .streamlit/config.toml
+git commit -m "Polish opportunity card controls and deadline cues"
+git push
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "opportunities.json"
 SUBJECTS = ["Computer Science", "Math", "Science", "Engineering", "Physics"]
