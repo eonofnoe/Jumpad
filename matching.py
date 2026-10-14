@@ -44,26 +44,70 @@ def parse_opportunity(opp):
             "source":opp}
 
 
-def match_opportunities(records, grade, budget, subject, preferred_format, chosen_type, today=None):
+def analyze_opportunities(records, grade, budget, subjects, preferred_format, chosen_type, today=None):
+    """Return ranked eligible results and independent counts for each eligibility filter."""
     today = today or date.today()
+    selected_subjects = [subjects] if isinstance(subjects, str) else list(subjects or [])
     matches = []
+    counts = {
+        "valid": 0,
+        "below_grade": 0,
+        "over_budget": 0,
+        "deadline_passed": 0,
+        "different_type": 0,
+        "invalid": 0,
+    }
+
     for raw in records:
         opp = parse_opportunity(raw)
         if not opp:
+            counts["invalid"] += 1
             continue
-        if grade < opp["grade"] or budget < opp["cost"] or opp["deadline"] < today:
+        counts["valid"] += 1
+
+        grade_ok = grade >= opp["grade"]
+        budget_ok = budget >= opp["cost"]
+        deadline_ok = opp["deadline"] >= today
+        type_ok = chosen_type == "Any" or chosen_type == opp["type"]
+
+        counts["below_grade"] += not grade_ok
+        counts["over_budget"] += not budget_ok
+        counts["deadline_passed"] += not deadline_ok
+        counts["different_type"] += not type_ok
+        if not (grade_ok and budget_ok and deadline_ok and type_ok):
             continue
-        if chosen_type != "Any" and opp["type"] != chosen_type:
-            continue
-        score, reasons = 0, ["Meets the minimum grade, budget, and upcoming-deadline requirements."]
-        if subject in opp["subjects"]:
+
+        matching_subjects = [subject for subject in selected_subjects if subject in opp["subjects"]]
+        score, reasons = 0, []
+        eligibility_checks = [
+            f"Your grade ({grade}) meets the minimum grade ({opp['grade']}).",
+            f"Cost ({money(opp['cost'])}) is within your budget ({money(budget)}).",
+            f"Deadline ({opp['deadline'].isoformat()}) has not passed.",
+        ]
+        if chosen_type != "Any":
+            eligibility_checks.append(f"Type matches your selection: {chosen_type}.")
+        else:
+            eligibility_checks.append("Included across opportunity types (Any selected).")
+
+        if matching_subjects:
             score += 3
-            reasons.append(f"Matches your subject interest: {subject}.")
-        if preferred_format != "Both" and (opp["format"].lower() == "both" or preferred_format.lower() == opp["format"].lower()):
+            reasons.append("Matches your interests: " + ", ".join(matching_subjects) + ".")
+        if preferred_format != "Both" and (
+            opp["format"].lower() == "both" or preferred_format.lower() == opp["format"].lower()
+        ):
             score += 2
             reasons.append(f"Supports your format preference ({preferred_format}).")
-        matches.append({**opp, "score":score, "reasons":reasons})
-    return sorted(matches, key=lambda item:item["score"], reverse=True)
+        if not reasons:
+            reasons.append("Meets your eligibility filters; it may still be worth exploring.")
+        matches.append({**opp, "score":score, "reasons":reasons, "eligibility_checks":eligibility_checks})
+
+    return sorted(matches, key=lambda item:item["score"], reverse=True), counts
+
+
+def match_opportunities(records, grade, budget, subject, preferred_format, chosen_type, today=None):
+    """Return ranked results; accepts a subject string or a collection of subjects."""
+    matches, _ = analyze_opportunities(records, grade, budget, subject, preferred_format, chosen_type, today)
+    return matches
 
 
 def money(value):
