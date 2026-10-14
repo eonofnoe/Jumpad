@@ -498,5 +498,90 @@
     "Deadline": "2027-01-27",
     "Description": "Free science and technology competition for teams of 2–4 students in grades K–12. Teams choose a technology and envision its future; a coach submits the project online. Eligibility includes citizenship and residency requirements—check the official rules.",
     "Link": "https://www.exploravision.org/faqs/"
+  },
+  {
+    "Name": "NCWIT Aspirations in Computing High School Award (2026–27)",
+    "Subjects": [
+      "Computer Science"
+    ],
+    "Grade": 9,
+    "Type": "Scholarship",
+    "Format": "Online",
+    "Location": "United States and Canada",
+    "Cost": null,
+    "Deadline": "2026-10-27",
+    "Description": "Recognition and community program for high-school students involved in or interested in computing and technology. Applicants first join the free AiC Community; 2026–27 applications close October 27, 2026 at 10 p.m. ET. Parent or guardian approval applies to students under 18.",
+    "Link": "https://www.aspirations.org/award-programs/aic-high-school-award",
+    "CostBasis": "unknown"
+  },
+  {
+    "Name": "Samsung Solve for Tomorrow (2026–27)",
+    "Subjects": [
+      "Science",
+      "Engineering",
+      "Computer Science"
+    ],
+    "Grade": 6,
+    "GradeLabel": "Grades 6–12 at eligible U.S. public schools",
+    "Type": "Competition",
+    "Format": "Both",
+    "Location": "United States",
+    "Cost": null,
+    "CostBasis": "unknown",
+    "Deadline": "2026-11-23",
+    "Description": "Classroom STEM challenge for students at eligible U.S. public middle and high schools. A teacher employed by the school submits the application on behalf of students; this year’s application deadline is November 23, 2026. Confirm any costs with the organizer.",
+    "Link": "https://www.samsung.com/us/solvefortomorrow/about/"
+  },
+  {
+    "Name": "Regeneron Science Talent Search 2027",
+    "Subjects": [
+      "Science",
+      "Engineering",
+      "Math"
+    ],
+    "Grade": 12,
+    "GradeLabel": "Final year of secondary school",
+    "Type": "Research",
+    "Format": "Online",
+    "Location": "United States and territories",
+    "Cost": null,
+    "CostBasis": "unknown",
+    "Deadline": "2026-11-05",
+    "Description": "Individual high-school research competition for students in their final year of secondary school. Entries require an original independent research report and recommendations; the 2027 application closes November 5, 2026 at 8 p.m. ET. Review official eligibility rules and confirm any costs.",
+    "Link": "https://www.societyforscience.org/regeneron-sts/frequently-asked-questions/"
+  },
+  {
+    "Name": "Diamond Challenge (2027)",
+    "Subjects": [
+      "Engineering",
+      "Computer Science",
+      "Science"
+    ],
+    "Grade": 9,
+    "GradeLabel": "High school students ages 14–18",
+    "Type": "Competition",
+    "Format": "Both",
+    "Location": "International; finalist summit in Delaware",
+    "Cost": null,
+    "CostBasis": "unknown",
+    "Deadline": "2027-01-14",
+    "Description": "Global entrepreneurship competition for teams of 2–4 high-school students ages 14–18. The 2027 submission deadline is January 14 at 5 p.m. ET. The organizer provides free learning resources; confirm whether any participation costs apply.",
+    "Link": "https://diamondchallenge.org/competition/"
+  },
+  {
+    "Name": "MATHCOUNTS Competition Series (2026–27)",
+    "Subjects": [
+      "Math"
+    ],
+    "Grade": 6,
+    "GradeLabel": "Grades 6–8",
+    "Type": "Competition",
+    "Format": "Onsite",
+    "Location": "United States; local chapter events",
+    "Cost": 48,
+    "CostBasis": "per student",
+    "Deadline": "2026-12-15",
+    "Description": "A national middle-school math competition with school and non-school registration options. The regular 2026–27 rate is $48 per student through December 15; schools can register by November 3 for the $42 early-bird rate. A school or coach may need to coordinate entry.",
+    "Link": "https://www.mathcounts.org/programs/critical-dates"
   }
 ]
