@@ -1,5 +1,6 @@
 import html
 import json
+from datetime import date
 from pathlib import Path
 
 import streamlit as st
@@ -10,100 +11,103 @@ DATA_FILE = BASE_DIR / "opportunities.json"
 SUBJECTS = ["Computer Science", "Math", "Science", "Engineering", "Physics"]
 TYPES = ["Any", "Competition", "Summer Program", "Internship", "Research", "Scholarship", "Hackathon"]
 FORMATS = ["Both", "Online", "Onsite"]
+TODAY = date.today()
 
 st.set_page_config(page_title="Jumpad | STEM Opportunities", page_icon="🧭", layout="wide")
 
+# One cohesive light theme. Streamlit theme colors are also configured in
+# .streamlit/config.toml; this block handles app-specific layout and components.
 st.markdown("""
 <style>
 :root {
-  --accent: #0071e3;
-  --accent-hover: #0062c4;
-  --text: #1d1d1f;
-  --secondary: #6e6e73;
-  --surface: #ffffff;
   --canvas: #fbfbfd;
-  --border: #e5e5e7;
+  --surface: #ffffff;
+  --surface-soft: #f4f4f6;
+  --border: #d8d8dc;
+  --text: #1d1d1f;
+  --muted: #59595f;
+  --accent: #b84427;
+  --accent-soft: #fff0eb;
+  --green: #17633c;
+  --green-soft: #eaf5ee;
+  --radius: 12px;
 }
-.stApp { background: var(--canvas); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", sans-serif; }
-.block-container { max-width: 1200px; padding: 2.4rem 2rem 4rem; }
-[data-testid="stSidebar"] { background: #f7f7f9; border-right: 1px solid var(--border); }
-[data-testid="stSidebar"] h3 { color: var(--text); font-size: 1.2rem; letter-spacing: -.02em; }
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: var(--secondary); line-height: 1.5; }
+html, body, [class*="st-"], [data-testid="stAppViewContainer"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", sans-serif;
+}
+.stApp { background:var(--canvas); color:var(--text); }
+.block-container { max-width:1280px; padding:1.15rem 1.6rem 3rem; }
+[data-testid="stSidebar"] { background:#f5f5f7; border-right:1px solid var(--border); }
+[data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 { color:var(--text); letter-spacing:-.02em; }
+[data-testid="stSidebar"] p, [data-testid="stCaptionContainer"] p { color:var(--muted); font-size:.84rem; line-height:1.45; }
+[data-testid="stCaptionContainer"] p { font-size:.84rem !important; }
+[data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label { color:#343439; font-size:.88rem; font-weight:600; }
 [data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div {
-  background: var(--surface); border: 1px solid #d2d2d7; border-radius: 9px; color: var(--text);
+  background:var(--surface); border:1px solid #c8c8ce; border-radius:var(--radius); color:var(--text); min-height:40px;
 }
 [data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within {
-  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.18);
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(184,68,39,.17);
 }
-[data-testid="stSlider"] [data-testid="stTickBar"] { color: var(--secondary); }
-[data-testid="stSlider"] [role="slider"] { background: var(--accent); border-color: var(--accent); }
-.slider-limits { display:flex; justify-content:space-between; margin-top:-.65rem; margin-bottom:.85rem; color:var(--secondary); font-size:.74rem; font-variant-numeric:tabular-nums; }
-.hero { padding: 1.7rem 0 1.4rem; margin-bottom: 1.15rem; }
-.hero-label { color:var(--secondary); font-size:.78rem; font-weight:650; letter-spacing:.02em; margin-bottom:.75rem; }
-.hero h1 { color:var(--text); font-size:clamp(2.5rem,5vw,3rem); line-height:1.04; letter-spacing:-.045em; font-weight:700; margin:0 0 .8rem; }
-.hero p { color:var(--secondary); max-width:680px; font-size:1.08rem; line-height:1.55; margin:0; }
-.intro-row { display:flex; justify-content:space-between; align-items:end; gap:1rem; margin:1.55rem 0 1rem; }
-.intro-row h2 { margin:0; color:var(--text); font-size:1.45rem; letter-spacing:-.025em; font-weight:600; }
-.intro-row p { color:var(--secondary); margin:.35rem 0 0; font-size:.93rem; }
-.stat-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:1.1rem 0 1.8rem; }
-.stat { min-height:132px; border:1px solid var(--border); border-radius:14px; background:var(--surface); padding:1.45rem 1.5rem; box-shadow:0 8px 20px rgba(0,0,0,.04); }
-.stat-icon { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:#edf5ff; color:var(--accent); font-size:1.05rem; font-weight:700; margin-bottom:.8rem; }
-.stat strong { display:block; color:var(--text); font-size:1rem; font-weight:600; margin-bottom:.25rem; }
-.stat span { color:var(--secondary); font-size:.82rem; line-height:1.45; }
-.live-summary { background:#fff; border:1px solid var(--border); border-radius:14px; padding:1.15rem 1.3rem; margin:1.6rem 0 .8rem; box-shadow:0 8px 20px rgba(0,0,0,.04); }
-.live-summary strong { display:block; color:var(--text); font-size:1.25rem; letter-spacing:-.02em; }
-.live-summary span { display:block; color:var(--secondary); font-size:.84rem; margin-top:.2rem; }
-.filter-reasons { display:flex; flex-wrap:wrap; gap:.45rem; margin:.75rem 0; }
-.filter-reason { padding:.36rem .62rem; background:#f2f2f4; color:#515158; border-radius:99px; font-size:.76rem; }
-.eligibility { margin:.75rem 0 1.1rem; padding:.95rem 1rem; background:#f4f8fd; border:1px solid #dce9f8; border-radius:12px; color:#3a3a3c; }
-.eligibility-title { font-weight:650; margin-bottom:.35rem; }
-.preference-reason { margin-top:.9rem; background:#f1f6fc; border-left:3px solid #8bb9e8; border-radius:0 9px 9px 0; padding:.72rem .85rem; color:#3a5065; font-size:.82rem; line-height:1.5; }
-.section-heading { display:flex; align-items:baseline; gap:.65rem; margin:1.9rem 0 .25rem; }
-.section-heading h2 { margin:0; font-size:1.45rem; letter-spacing:-.025em; color:var(--text); font-weight:600; }
-.section-heading span { color:var(--secondary); font-size:.86rem; }
-.card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.4rem 1.5rem; margin:.9rem 0 .35rem; box-shadow:0 8px 20px rgba(0,0,0,.04); }
-.card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
-.card-tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.65rem; }
-.pill { display:inline-block; border-radius:99px; padding:.28rem .62rem; font-size:.72rem; font-weight:600; background:#f2f2f4; color:#515158; }
-.pill.type { background:#f2f2f4; color:#515158; }
-.card h3 { margin:0; color:var(--text); font-size:1.22rem; line-height:1.3; letter-spacing:-.02em; font-weight:600; }
-.card-desc { margin:.5rem 0 1rem; color:#515158; line-height:1.55; font-size:.93rem; }
-.score { flex:0 0 auto; text-align:center; border-radius:11px; padding:.52rem .72rem; background:#f5f5f7; color:#3a3a3c; border:1px solid #e5e5e7; min-width:74px; }
-.score strong { display:block; font-size:1rem; line-height:1.2; }
-.score span { font-size:.64rem; color:var(--secondary); text-transform:uppercase; letter-spacing:.08em; font-weight:650; }
-.metadata { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.6rem; border-top:1px solid #f0f0f2; padding-top:.9rem; }
+[data-testid="stSlider"] [role="slider"] { background:var(--accent); border-color:var(--accent); }
+[data-testid="stSlider"] [data-testid="stTickBar"] { color:var(--muted); }
+.app-header { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:0 0 10px; }
+.app-header h1 { margin:0; font-size:1.8rem; line-height:1.15; letter-spacing:-.04em; color:var(--text); }
+.app-header p { margin:0; color:var(--muted); font-size:.96rem; }
+.result-stat { margin:0 0 14px; color:#39393e; font-size:.94rem; line-height:1.4; }
+.result-stat strong { color:var(--text); font-size:1.08rem; }
+.eyebrow { color:var(--muted); font-size:.82rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.chip-row { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+.tag { display:inline-flex; align-items:center; min-height:27px; padding:3px 10px; border-radius:999px; background:#eeeeF1; color:#343439; font-size:.82rem; font-weight:650; }
+.tag.type { background:#f2eae7; color:#593124; }
+.tag.format { background:#eaf0f6; color:#263d54; }
+.tag.free { background:var(--green-soft); color:var(--green); }
+.match-badge { display:inline-flex; align-items:center; justify-content:center; min-height:32px; padding:5px 10px; border-radius:999px; background:#f1f1f3; border:1px solid #d8d8dc; color:#303035; font-size:.82rem; font-weight:700; white-space:nowrap; }
+.match-badge.strong { background:#eaf5ee; color:#155b38; border-color:#b9d9c5; }
+.match-badge.good { background:#fff4e5; color:#704600; border-color:#ead2ad; }
+.match-badge.partial { background:#f1f1f3; color:#45454b; }
+.desc-clamp { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; margin:4px 0 14px; color:#44444a; font-size:.92rem; line-height:1.48; min-height:2.72em; }
+.metadata { display:grid; grid-template-columns:1fr 1fr 1.25fr 1fr 1.5fr; gap:12px; padding:12px 0; border-top:1px solid #e7e7e9; border-bottom:1px solid #e7e7e9; }
 .meta-item { min-width:0; }
-.meta-label { color:var(--secondary); text-transform:uppercase; letter-spacing:.07em; font-weight:600; font-size:.65rem; margin-bottom:.2rem; }
-.meta-value { color:#3a3a3c; font-size:.84rem; overflow-wrap:anywhere; }
-.reason { margin-top:.9rem; background:#f7f7f9; border-radius:9px; padding:.72rem .85rem; color:#515158; font-size:.82rem; line-height:1.5; }
-.stButton>button[kind="primary"] { background:var(--accent); border:1px solid var(--accent); color:white; border-radius:10px; min-height:2.8rem; font-weight:650; transition:background .16s ease, box-shadow .16s ease, transform .16s ease; }
-.stButton>button[kind="primary"]:hover { background:var(--accent-hover); border-color:var(--accent-hover); box-shadow:0 4px 12px rgba(0,113,227,.2); transform:translateY(-1px); }
-.stButton>button[kind="primary"]:focus-visible, .stLinkButton a:focus-visible { outline:3px solid rgba(0,113,227,.28); outline-offset:2px; }
-.stLinkButton a { border-radius:9px; font-weight:600; border-color:var(--border); }
-.stLinkButton a:hover { color:var(--accent); border-color:#b7d6f7; }
-div[data-testid="stAlert"] { border-radius:12px; }
-details { border:1px solid var(--border) !important; border-radius:12px !important; background:var(--surface); }
-@media (max-width: 750px) {
-  .block-container { padding:1.35rem 1rem 3rem; }
-  .hero { padding:1.1rem 0 1rem; }
-  .hero h1 { font-size:2.45rem; }
-  .stat-strip { grid-template-columns:1fr; gap:.7rem; }
-  .stat { min-height:0; padding:1.1rem 1.2rem; }
-  .stat-icon { float:left; margin:0 .8rem .4rem 0; }
-  .metadata { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:.85rem; }
-  .card { padding:1.1rem; }
-  .card-top { gap:.55rem; }
+.meta-label { margin-bottom:4px; color:var(--muted); font-size:.82rem; font-weight:700; letter-spacing:.01em; }
+.meta-value { color:#303035; font-size:.88rem; line-height:1.4; overflow-wrap:anywhere; }
+.deadline .meta-value { font-weight:750; }
+.deadline.soon .meta-value, .deadline.closed .meta-value { color:var(--accent); }
+.why-line { margin:10px 0 4px; color:#36363b; font-size:.89rem; line-height:1.4; }
+.closing-strip { padding:10px 12px; margin:0 0 12px; border:1px solid #e2c2b8; border-radius:var(--radius); background:#fff7f4; }
+.closing-title { margin:0 0 6px; color:#74321f; font-size:.86rem; font-weight:750; }
+.closing-items { display:flex; flex-wrap:wrap; gap:8px 16px; color:#503b35; font-size:.85rem; }
+.closing-items a { color:#76351f; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+.compact-note { color:var(--muted); font-size:.84rem; line-height:1.4; }
+.section-title { margin:10px 0 4px; color:var(--text); font-size:1.25rem; letter-spacing:-.02em; }
+.opportunity-title { color:var(--text); font-size:1.16rem; line-height:1.3; font-weight:750; letter-spacing:-.02em; text-decoration:none; }
+.opportunity-title:hover { color:#78321e; text-decoration:underline; text-underline-offset:3px; }
+.st-key-filter-links button, .st-key-relaxers button, .st-key-reset-button button {
+  min-height:36px; padding:4px 7px; border:0; background:transparent; color:#6f2c1b; text-decoration:underline; text-underline-offset:3px; font-size:.86rem; box-shadow:none;
 }
-@media (max-width: 420px) {
-  .score { min-width:61px; padding:.42rem .5rem; }
-  .card h3 { font-size:1.08rem; }
+.st-key-filter-links button, .st-key-relaxers button, .st-key-reset-button button { border-radius:var(--radius) !important; }
+.st-key-filter-links button:hover, .st-key-relaxers button:hover, .st-key-reset-button button:hover { color:#822f17; background:#f6e9e4; }
+.st-key-opportunity-list [data-testid="stVerticalBlockBorderWrapper"] { border-color:var(--border); border-radius:var(--radius); background:var(--surface); box-shadow:0 5px 16px rgba(0,0,0,.035); transition:border-color .16s ease, box-shadow .16s ease; }
+.st-key-opportunity-list [data-testid="stVerticalBlockBorderWrapper"]:hover { border-color:#b9a49d; box-shadow:0 8px 20px rgba(0,0,0,.07); }
+[data-testid="stExpander"] { border-color:var(--border); border-radius:var(--radius); background:var(--surface); }
+[data-testid="stLinkButton"] a { min-height:40px; border-radius:var(--radius); border-color:var(--border); color:#343439; font-weight:650; }
+[data-testid="stLinkButton"] a:hover { border-color:#a69d99; color:#712e1c; }
+[data-testid="stButton"] button, [data-testid="stCheckbox"] label { min-height:40px; }
+@media (max-width: 800px) {
+  .block-container { padding:1rem 1rem 2.5rem; }
+  .metadata { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; }
+}
+@media (max-width: 640px) {
+  .app-header { gap:5px; align-items:flex-start; flex-direction:column; }
+  .app-header h1 { font-size:1.65rem; }
+  .metadata { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .st-key-opportunity-list [data-testid="stHorizontalBlock"] { gap:.5rem; }
+  .st-key-opportunity-list [data-testid="stButton"] button { min-height:44px; }
 }
 </style>
 """, unsafe_allow_html=True)
 
 
 def load_opportunities():
-    """Load data with a useful error message while keeping parsing out of the UI flow."""
     try:
         with DATA_FILE.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
@@ -125,33 +129,103 @@ def safe(value):
     return html.escape(str(value), quote=True)
 
 
-def render_card(opp):
-    subjects = ", ".join(opp["subjects"]) or "General"
-    reasons = " ".join(opp["reasons"])
-    deadline = opp["deadline"].strftime("%b %d, %Y")
-    st.markdown(f"""
-    <article class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-tags"><span class="pill type">{safe(opp['type'])}</span><span class="pill">{safe(opp['format'])}</span></div>
-          <h3>{safe(opp['name'])}</h3>
+def reset_filters():
+    defaults = {
+        "profile_name": "", "profile_grade": 9, "selected_subjects": ["Computer Science"],
+        "preferred_format": "Both", "chosen_type": "Any", "budget": 500,
+        "free_only": False, "include_saved_only": False, "sort_order": "Best match",
+        "relax_budget": False, "relax_type": False, "relax_deadline": False,
+    }
+    for key, value in defaults.items():
+        st.session_state[key] = value
+    for subject in SUBJECTS:
+        st.session_state[subject_key(subject)] = subject == "Computer Science"
+
+
+def subject_key(subject):
+    return "interest_" + "_".join(subject.lower().split())
+
+
+def set_all_subjects(value):
+    st.session_state["selected_subjects"] = SUBJECTS.copy() if value else []
+    for subject in SUBJECTS:
+        st.session_state[subject_key(subject)] = value
+
+
+def relative_deadline(deadline):
+    days = (deadline - TODAY).days
+    if days < 0:
+        return "Closed", "closed"
+    if days == 0:
+        return "Closes today", "soon"
+    if days == 1:
+        return "Closes in 1 day", "soon"
+    cue = f"Closes in {days} days"
+    return cue, "soon" if days < 14 else ""
+
+
+def match_label(score):
+    # Thresholds: 5 = Strong, 3–4 = Good, and 0–2 = Partial against the 5-point scale.
+    if score >= 5:
+        return "Strong match", "strong"
+    if score >= 3:
+        return "Good match", "good"
+    return "Partial match", "partial"
+
+
+def render_card(opp, card_index, saved_names):
+    name = opp["name"]
+    key = f"save_{card_index}_{abs(hash(name))}"
+    is_saved = name in saved_names
+    badge, badge_class = match_label(opp["score"])
+    badge_detail = f"{opp['score']} of {MAX_SCORE} match points"
+    relative, deadline_class = relative_deadline(opp["deadline"])
+    deadline_date = opp["deadline"].strftime("%b %d, %Y")
+    price = cost_label(opp)
+    free = opp.get("cost_known") and opp.get("cost") == 0
+    with st.container(border=True, key=f"opportunity-list-{card_index}"):
+        title_col, badge_col, save_col = st.columns([6.4, 1.7, 1.1])
+        with title_col:
+            st.markdown(f'<a class="opportunity-title" href="{safe(opp["link"])}" target="_blank" rel="noopener noreferrer">{safe(name)} ↗</a>', unsafe_allow_html=True)
+        with badge_col:
+            st.markdown(f'<span class="match-badge {badge_class}" title="{safe(badge_detail)}">{badge}</span>', unsafe_allow_html=True)
+        with save_col:
+            if st.button("Saved ✓" if is_saved else "Save", key=key, help="Save this opportunity" if not is_saved else "Remove from saved opportunities"):
+                updated = set(st.session_state.get("saved_opportunities", []))
+                if name in updated:
+                    updated.remove(name)
+                else:
+                    updated.add(name)
+                st.session_state["saved_opportunities"] = sorted(updated)
+                st.rerun()
+
+        type_tag, format_tag = st.columns([1, 5])
+        with type_tag:
+            st.markdown(f'<span class="tag type">{safe(opp["type"])}</span>', unsafe_allow_html=True)
+        with format_tag:
+            st.markdown(f'<span class="tag format">{safe(opp["format"])}</span>', unsafe_allow_html=True)
+        st.markdown(f'<div class="desc-clamp">{safe(opp["description"])}</div>', unsafe_allow_html=True)
+        subjects = ", ".join(opp["subjects"]) or "General"
+        grade_class = "meta-item"
+        cost_display = f'<span class="tag free">Free</span>' if free else safe(price)
+        deadline_markup = f'<div class="meta-item deadline {deadline_class}"><div class="meta-label">Deadline</div><div class="meta-value">{safe(deadline_date)}<br>{safe(relative)}</div></div>'
+        st.markdown(f"""
+        <div class="metadata">
+          <div class="meta-item"><div class="meta-label">Subject</div><div class="meta-value">{safe(subjects)}</div></div>
+          <div class="{grade_class}"><div class="meta-label">Minimum grade</div><div class="meta-value">{safe(opp['grade_label'])}</div></div>
+          <div class="meta-item"><div class="meta-label">Location</div><div class="meta-value">{safe(opp['location'])}</div></div>
+          <div class="meta-item"><div class="meta-label">Cost</div><div class="meta-value">{cost_display}</div></div>
+          {deadline_markup}
         </div>
-        <div class="score"><strong>{opp['score']}/{MAX_SCORE}</strong><span>match</span></div>
-      </div>
-      <p class="card-desc">{safe(opp['description'])}</p>
-      <div class="metadata">
-        <div class="meta-item"><div class="meta-label">Subject</div><div class="meta-value">{safe(subjects)}</div></div>
-        <div class="meta-item"><div class="meta-label">Minimum grade</div><div class="meta-value">{safe(opp['grade_label'])}</div></div>
-        <div class="meta-item"><div class="meta-label">Location</div><div class="meta-value">{safe(opp['location'])}</div></div>
-        <div class="meta-item"><div class="meta-label">Cost · deadline</div><div class="meta-value">{safe(cost_label(opp))} · {safe(deadline)}</div></div>
-      </div>
-      <div class="preference-reason"><strong>Why it fits your interests:</strong> {safe(reasons)}</div>
-    </article>
-    """, unsafe_allow_html=True)
-    with st.expander("Why this appears", expanded=False):
-        for check in opp["eligibility_checks"]:
-            st.markdown(f"✓ {safe(check)}")
-    st.link_button("View opportunity details ↗", opp["link"])
+        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="why-line"><strong>Why it matches:</strong> {safe(" ".join(opp["reasons"]))}</div>', unsafe_allow_html=True)
+        with st.expander("See eligibility details", expanded=False):
+            for check in opp["eligibility_checks"]:
+                if opp["deadline"] < TODAY and check.startswith("Deadline ("):
+                    check = f"Deadline ({opp['deadline'].isoformat()}) has passed; this listing is shown because closed listings are included. Check the organizer for a new cycle."
+                st.markdown(f"- {safe(check)}")
+        st.link_button("View details ↗", opp["link"])
+        st.caption(badge_detail)
 
 
 try:
@@ -160,104 +234,111 @@ except RuntimeError as error:
     st.error(str(error))
     st.stop()
 
-st.markdown("""
-<section class="hero">
-  <div class="hero-label">JUMPAD · YOUR STEM LAUNCHPAD</div>
-  <h1>Find your next STEM opportunity.</h1>
-  <p>Explore competitions, programs, internships, and research matched to your interests and eligibility.</p>
-</section>
-""", unsafe_allow_html=True)
-
-if "selected_subjects" not in st.session_state:
-    st.session_state["selected_subjects"] = ["Computer Science"]
-else:
-    # Clear removed or renamed options from a profile saved by an older app version.
-    st.session_state["selected_subjects"] = [s for s in st.session_state["selected_subjects"] if s in SUBJECTS]
-
 with st.sidebar:
-    st.markdown("### Build your profile")
-    st.caption("Results update as you adjust eligibility filters. Interests help rank the eligible options.")
-    name = st.text_input("Your name (optional)", max_chars=60, placeholder="e.g. Alex")
-    grade = st.selectbox("Current grade", list(range(6, 13)), index=3)
-    st.markdown("**Interests to prioritize**")
-    select_all_col, clear_all_col = st.columns(2)
-    if select_all_col.button("Select all", use_container_width=True):
-        st.session_state["selected_subjects"] = SUBJECTS.copy()
-    if clear_all_col.button("Clear all", use_container_width=True):
-        st.session_state["selected_subjects"] = []
-    selected_subjects = st.multiselect(
-        "Choose one or more subjects",
-        SUBJECTS,
-        key="selected_subjects",
-        label_visibility="collapsed",
-        placeholder="Select interests",
-    )
-    preferred_format = st.selectbox("Preferred format", FORMATS, help="Choose Both if you have no format preference.")
-    chosen_type = st.selectbox("Opportunity type", TYPES)
-    budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d")
-    st.markdown('<div class="slider-limits"><span>$0</span><span>$6,000</span></div>', unsafe_allow_html=True)
-    st.caption("Jumpad filters by grade, budget, deadline, and type. Check organizer pages for other qualifications, such as prior experience.")
+    st.markdown("### About you")
+    name = st.text_input("Name (optional)", max_chars=60, placeholder="e.g. Alex", key="profile_name")
+    grade = st.selectbox("Current grade", list(range(6, 13)), index=3, format_func=lambda value: f"Grade {value}", key="profile_grade")
+    st.markdown("### What you want")
+    st.markdown("**Interests**")
+    with st.container(key="filter-links"):
+        link_col1, link_col2 = st.columns(2)
+        with link_col1:
+            st.button("Select all", key="select_all", on_click=set_all_subjects, args=(True,), help="Select every interest")
+        with link_col2:
+            st.button("Clear all", key="clear_all", on_click=set_all_subjects, args=(False,), help="Clear selected interests")
+    # Checkboxes provide compact multi-select and avoid the empty "No results"
+    # dropdown that can remain open after selecting every option.
+    if "selected_subjects" not in st.session_state:
+        st.session_state["selected_subjects"] = ["Computer Science"]
+    selected_before_run = set(st.session_state.get("selected_subjects", []))
+    for subject in SUBJECTS:
+        key = subject_key(subject)
+        if key not in st.session_state:
+            st.session_state[key] = subject in selected_before_run
+    interest_cols = st.columns(2)
+    for index, subject in enumerate(SUBJECTS):
+        with interest_cols[index % 2]:
+            st.checkbox(subject, key=subject_key(subject))
+    st.session_state["selected_subjects"] = [subject for subject in SUBJECTS if st.session_state.get(subject_key(subject), False)]
+    preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
+    chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
+    budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
+    st.markdown(f'<div class="compact-note"><strong>Up to ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>', unsafe_allow_html=True)
+    st.checkbox("Free only", key="free_only")
+    st.caption("Team fees and unconfirmed costs are surfaced for you to check with the organizer.")
+    st.divider()
+    with st.container(key="reset-button"):
+        st.button("Reset all filters", key="reset_all", on_click=reset_filters, help="Restore the default profile and filters")
 
-st.markdown('<div class="intro-row"><div><h2>Find the opportunity that fits</h2><p>Use your profile to turn a long list into a clear next step.</p></div></div>', unsafe_allow_html=True)
-st.markdown(f"""
-<div class="stat-strip">
-  <div class="stat"><div class="stat-icon">✦</div><strong>{len(opportunities)} opportunities</strong><span>Competitions, programs, research, and internships in one place.</span></div>
-  <div class="stat"><div class="stat-icon">✓</div><strong>Eligibility comes first</strong><span>Grade, budget, deadline, and type are checked before ranking.</span></div>
-  <div class="stat"><div class="stat-icon">↗</div><strong>Free to explore</strong><span>Paid options within your budget remain in the mix.</span></div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<header class="app-header"><h1>Jumpad</h1><p>Find your next STEM opportunity.</p></header>', unsafe_allow_html=True)
 
 results, filter_counts = analyze_opportunities(
-    opportunities, grade, budget, selected_subjects, preferred_format, chosen_type
+    opportunities, grade, budget, st.session_state.get("selected_subjects", []), preferred_format, chosen_type
 )
-match_phrase = "opportunity fits" if len(results) == 1 else "opportunities fit"
-st.markdown(f"""
-<div class="live-summary">
-  <strong>{len(results)} {match_phrase} your current filters</strong>
-  <span>Updates as you change grade, budget, deadline, or type. Subject interests and format affect ranking.</span>
-</div>
-""", unsafe_allow_html=True)
+if st.session_state.get("relax_budget", False):
+    results, _ = analyze_opportunities(opportunities, grade, 6000, st.session_state.get("selected_subjects", []), preferred_format, chosen_type)
+if st.session_state.get("relax_type", False):
+    results, _ = analyze_opportunities(opportunities, grade, 6000 if st.session_state.get("relax_budget", False) else budget, st.session_state.get("selected_subjects", []), preferred_format, "Any")
+if st.session_state.get("relax_deadline", False):
+    results, _ = analyze_opportunities(opportunities, grade, 6000 if st.session_state.get("relax_budget", False) else budget, st.session_state.get("selected_subjects", []), preferred_format, "Any" if st.session_state.get("relax_type", False) else chosen_type, today=date.min)
+if st.session_state.get("free_only", False):
+    results = [opp for opp in results if opp.get("cost_known") and opp.get("cost") == 0]
 
-exclusions = []
-for key, label in [
-    ("below_grade", "require a higher grade"),
-    ("over_budget", "over your budget"),
-    ("deadline_passed", "past deadline"),
-    ("different_type", "different type"),
-]:
-    if filter_counts[key]:
-        exclusions.append(f'<span class="filter-reason">{filter_counts[key]} {label}</span>')
-if exclusions:
-    st.markdown(
-        '<div class="filter-reasons"><strong>Why listings are filtered:</strong> '
-        + "".join(exclusions)
-        + '</div><div class="meta-label">Counts may overlap when a listing misses more than one requirement.</div>',
-        unsafe_allow_html=True,
-    )
-elif filter_counts["valid"]:
-    st.caption("All valid listings meet the selected grade, budget, deadline, and type requirements.")
+saved_names = set(st.session_state.get("saved_opportunities", []))
+if st.checkbox(f"Saved ({len(saved_names)})", key="include_saved_only", help="Show only saved opportunities"):
+    results = [opp for opp in results if opp["name"] in saved_names]
+
+sort_col, _ = st.columns([1.4, 5])
+with sort_col:
+    sort_order = st.selectbox("Sort results", ["Best match", "Deadline soonest", "Cost lowest"], label_visibility="collapsed", key="sort_order")
+if sort_order == "Deadline soonest":
+    results = sorted(results, key=lambda opp: opp["deadline"])
+elif sort_order == "Cost lowest":
+    results = sorted(results, key=lambda opp: (not opp["cost_known"], opp["cost"] if opp["cost_known"] else float("inf"), opp["deadline"]))
+
+count = len(results)
+phrase = "opportunity" if count == 1 else "opportunities"
+st.markdown(f'<div class="result-stat"><strong>{count} of {len(opportunities)} {phrase}</strong> match your current profile</div>', unsafe_allow_html=True)
+
+closing = [opp for opp in results if 0 <= (opp["deadline"] - TODAY).days < 14]
+if closing:
+    closing = sorted(closing, key=lambda opp: opp["deadline"])[:3]
+    links = "".join(f'<span><a href="{safe(o["link"])}" target="_blank" rel="noopener noreferrer">{safe(o["name"])}</a> · Closes in {(o["deadline"] - TODAY).days} days</span>' for o in closing)
+    st.markdown(f'<section class="closing-strip"><div class="closing-title">Closing soon</div><div class="closing-items">{links}</div></section>', unsafe_allow_html=True)
+
+if filter_counts["below_grade"]:
+    st.caption(f"{filter_counts['below_grade']} listing(s) require a higher grade than Grade {grade}; grade eligibility is informational and can’t be relaxed here.")
+if filter_counts["deadline_passed"]:
+    st.caption(f"{filter_counts['deadline_passed']} listing(s) have a past deadline.")
 if filter_counts["budget_unconfirmed"]:
-    st.caption(f"{filter_counts['budget_unconfirmed']} matching listing(s) have a team fee or unconfirmed cost, so their price cannot be compared with your budget. Check the organizer page before applying.")
-if filter_counts["invalid"]:
-    st.caption(f"{filter_counts['invalid']} listing(s) need data review and could not be evaluated.")
+    st.caption(f"{filter_counts['budget_unconfirmed']} currently eligible listing(s) have a team fee or unconfirmed cost.")
 
-st.markdown(f'<div class="section-heading"><h2>Potential matches</h2><span>Ranked by your selected interests</span></div>', unsafe_allow_html=True)
-if selected_subjects:
-    st.caption(f"Subject priorities: {', '.join(selected_subjects)} · Match score out of {MAX_SCORE} includes subject fit (3) and format fit (2).")
-else:
-    st.caption(f"No subject priorities selected · Match score out of {MAX_SCORE} can include format fit (2). All eligible opportunities remain visible.")
+relax_options = [
+    ("over_budget", f"{filter_counts['over_budget']} over budget", "relax_budget", "Include listings over budget"),
+    ("different_type", f"{filter_counts['different_type']} other types", "relax_type", "Include all opportunity types"),
+    ("deadline_passed", f"{filter_counts['deadline_passed']} past deadline", "relax_deadline", "Include closed listings"),
+]
+active_relax = [label for _, label, state_key, _ in relax_options if st.session_state.get(state_key, False)]
+with st.container(key="relaxers"):
+    if any(filter_counts[key] for key, _, _, _ in relax_options) or active_relax:
+        st.markdown('<div class="compact-note"><strong>Try widening your search</strong></div>', unsafe_allow_html=True)
+        relax_cols = st.columns(3)
+        for col, (count_key, label, state_key, action) in zip(relax_cols, relax_options):
+            if filter_counts[count_key] or st.session_state.get(state_key, False):
+                text = f"✓ Showing {label}" if st.session_state.get(state_key, False) else f"{label} · show"
+                if col.button(text, key=f"toggle_{state_key}", help=action):
+                    st.session_state[state_key] = not st.session_state.get(state_key, False)
+                    st.rerun()
 
+st.markdown('<h2 class="section-title">Opportunities</h2>', unsafe_allow_html=True)
 if results:
-    st.markdown(f"""
-    <div class="eligibility">
-      <div class="eligibility-title">Why these opportunities appear</div>
-      Results meet the displayed grade, deadline, and type filters. Individual costs fit your budget; team-priced or unconfirmed fees need checking with the organizer. Open <strong>Why this appears</strong> on a card to see its checks. Jumpad does not check other qualifications, such as district eligibility or prior experience; review each organizer page.
-    </div>
-    """, unsafe_allow_html=True)
-    for opp in results:
-        render_card(opp)
+    for index, opp in enumerate(results):
+        render_card(opp, index, saved_names)
 else:
-    st.info("No opportunities meet all your eligibility filters. Try increasing your budget, choosing a different type or grade, or clearing an eligibility filter.")
+    st.info("No opportunities match these filters yet. Try widening your search or resetting your filters.")
+    if st.session_state.get("include_saved_only", False) and not saved_names:
+        st.caption("Save an opportunity with the Save button to build your list.")
+    st.button("Reset filters", key="empty_reset", on_click=reset_filters)
 
 with st.expander("How matching works"):
-    st.write("We first filter by minimum grade, known individual costs within your budget, upcoming deadline, and selected opportunity type. Listings with a team fee or unconfirmed cost remain visible with a reminder to check the organizer's page. Eligible listings can then earn 3 points if they match any selected subject and up to 2 points for an Online or Onsite format match. Choosing Both means you have no format preference. Cost does not lower a match score.")
+    st.write("Grade, budget, deadline, and opportunity type determine eligibility. Your interests and format preference determine ranking; the ranking formula is unchanged. A known individual cost must fit your budget. Team fees and unconfirmed costs remain visible with a reminder to confirm the price. Saved-only and Free-only further narrow the displayed results. Relaxers temporarily include over-budget, other-type, or closed listings, while a higher-grade requirement remains informational.")
