@@ -4,6 +4,8 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import altair as alt
+import pandas as pd
 import streamlit as st
 from matching import MAX_SCORE, analyze_opportunities, cost_label
 
@@ -21,7 +23,7 @@ st.set_page_config(page_title="Jumpad | STEM Opportunities", page_icon="✦", la
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   --ink: #12332c;
@@ -42,7 +44,7 @@ st.markdown(
 * { box-sizing: border-box; }
 .stApp {
   color: var(--ink);
-  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   background:
     radial-gradient(circle at 88% 2%, rgba(210, 236, 219, .92) 0, rgba(210, 236, 219, 0) 24rem),
     radial-gradient(circle at 52% 98%, rgba(255, 222, 173, .34) 0, rgba(255, 222, 173, 0) 29rem),
@@ -64,12 +66,12 @@ st.markdown(
 [data-testid="stSidebar"] [data-testid="stCheckbox"] label { color: rgba(250, 250, 244, .91) !important; font-size: .87rem; }
 [data-testid="stSidebar"] [data-testid="stCheckbox"] [data-testid="stCheckbox"] { accent-color: var(--sun); }
 .sidebar-brand { display: flex; gap: 11px; align-items: center; margin: .05rem 0 2rem; }
-.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 13px; background: var(--sun); color: #11342d; font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; font-weight: 700; transform: rotate(-7deg); }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 13px; background: var(--sun); color: #11342d; font-family: "DM Serif Display", Georgia, serif; font-size: 1.35rem; font-weight: 700; transform: rotate(-7deg); }
 .brand-copy { display: flex; flex-direction: column; gap: 1px; }
 .brand-copy b { color: #fffdf6; font-size: 1rem; letter-spacing: .08em; }
 .brand-copy span { color: #a9c9bc; font-size: .72rem; font-weight: 600; }
 .side-eyebrow { margin: 0 0 .2rem; color: #a9c9bc; font-size: .7rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
-.side-heading { margin: 0 0 .85rem; color: #fffdf7; font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; line-height: 1.1; }
+.side-heading { margin: 0 0 .85rem; color: #fffdf7; font-family: "DM Serif Display", Georgia, serif; font-size: 1.3rem; line-height: 1.1; }
 .sidebar-divider { height: 1px; margin: 1.35rem 0; background: rgba(214, 238, 225, .18); }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
@@ -123,18 +125,18 @@ st.markdown(
 .hero-copy { max-width: 700px; }
 .hero-kicker { display: flex; align-items: center; gap: 8px; color: #bce2d0; font-size: .74rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .hero-kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 4px rgba(245, 191, 72, .15); }
-.hero h1 { margin: .66rem 0 .55rem; color: #fffdf6; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.35rem, 4vw, 4.1rem); font-weight: 600; letter-spacing: -.055em; line-height: .96; }
+.hero h1 { margin: .66rem 0 .55rem; color: #fffdf6; font-family: "DM Serif Display", Georgia, serif; font-size: clamp(2.35rem, 4vw, 4.1rem); font-weight: 400; letter-spacing: -.045em; line-height: .96; }
 .hero h1 em { color: #bce9d7; font-style: italic; }
 .hero p { max-width: 540px; margin: 0; color: #c6ddd3; font-size: 1rem; line-height: 1.52; }
 .hero-summary { display: flex; align-items: flex-end; justify-content: flex-end; }
 .hero-count { width: min(100%, 235px); padding: 1.2rem 1.25rem; border: 1px solid rgba(246, 253, 248, .2); border-radius: 18px; background: rgba(10, 37, 32, .28); backdrop-filter: blur(5px); }
-.hero-count strong { display: block; color: var(--sun); font-family: "Fraunces", Georgia, serif; font-size: 3.05rem; line-height: .95; letter-spacing: -.055em; }
+.hero-count strong { display: block; color: var(--sun); font-family: "DM Serif Display", Georgia, serif; font-size: 3.05rem; line-height: .95; letter-spacing: -.055em; }
 .hero-count span { display: block; margin-top: .5rem; color: #e0ede5; font-size: .8rem; font-weight: 600; line-height: 1.35; }
 
 /* Results shell */
 .results-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin: 1.65rem 0 .55rem; }
 .results-label { margin: 0 0 .18rem; color: var(--aqua); font-size: .73rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-.results-title { margin: 0; color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.66rem; font-weight: 600; letter-spacing: -.04em; }
+.results-title { margin: 0; color: var(--ink); font-family: "DM Serif Display", Georgia, serif; font-size: 1.72rem; font-weight: 400; letter-spacing: -.025em; }
 .result-stat { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; color: var(--muted); font-size: .9rem; }
 .result-stat::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--aqua); box-shadow: 0 0 0 4px rgba(67, 173, 145, .12); }
 .result-stat strong { color: var(--ink); font-weight: 700; }
@@ -146,7 +148,7 @@ st.markdown(
 /* Opportunity cards */
 [class*="st-key-opportunity-list"] [data-testid="stVerticalBlockBorderWrapper"] { border: 1px solid rgba(25, 72, 62, .14) !important; border-radius: var(--radius) !important; background: rgba(255, 253, 248, .94) !important; box-shadow: 0 8px 24px rgba(30, 56, 49, .055); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 [class*="st-key-opportunity-list"] [data-testid="stVerticalBlockBorderWrapper"]:hover { transform: translateY(-3px); border-color: rgba(67, 173, 145, .62) !important; box-shadow: var(--shadow); }
-.opportunity-title { color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; font-weight: 600; letter-spacing: -.027em; line-height: 1.2; text-decoration: none; }
+.opportunity-title { color: var(--ink); font-family: "DM Serif Display", Georgia, serif; font-size: 1.34rem; font-weight: 400; letter-spacing: -.015em; line-height: 1.2; text-decoration: none; }
 .opportunity-title:hover { color: var(--coral-deep); text-decoration: underline; text-decoration-color: rgba(232, 104, 72, .5); text-underline-offset: 4px; }
 .match-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 7px 10px; border: 1px solid #ded9ce; border-radius: 999px; background: #f4f0e9; color: #405750; font-size: .77rem; font-weight: 700; white-space: nowrap; }
 .match-badge.strong { border-color: #a5d6c4; background: #e7f5ed; color: #236550; }
@@ -176,7 +178,16 @@ st.markdown(
 .closing-items a:hover { color: var(--coral-deep); }
 .filter-explainer { margin: 7px 0; color: var(--muted); font-size: .85rem; line-height: 1.45; }
 .compact-note { color: var(--muted); font-size: .82rem; line-height: 1.42; }
-.section-title { margin: 1.8rem 0 .7rem; color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.48rem !important; font-weight: 600; letter-spacing: -.035em; }
+.section-title { margin: 1.8rem 0 .7rem; color: var(--ink); font-family: "DM Serif Display", Georgia, serif; font-size: 1.55rem !important; font-weight: 400; letter-spacing: -.015em; }
+.analytics-shell { margin: 1.5rem 0 1.35rem; padding: 1.05rem 1.1rem 1.2rem; border: 1px solid rgba(25, 72, 62, .13); border-radius: 18px; background: rgba(255, 253, 248, .72); box-shadow: 0 8px 22px rgba(30, 56, 49, .045); }
+.analytics-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+.analytics-kicker { margin: 0 0 .18rem; color: var(--aqua); font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.analytics-title { margin: 0; color: var(--ink); font-family: "DM Serif Display", Georgia, serif; font-size: 1.45rem; font-weight: 400; letter-spacing: -.015em; }
+.analytics-note { margin: 0; color: var(--muted); font-size: .75rem; text-align: right; }
+.stat-tile { min-height: 78px; padding: .72rem .85rem; border: 1px solid #e5ded2; border-radius: 13px; background: #fffdf8; }
+.stat-label { color: #83908a; font-size: .67rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.stat-value { margin-top: .22rem; color: var(--ink); font-family: "DM Serif Display", Georgia, serif; font-size: 1.7rem; line-height: 1; }
+.stat-hint { margin-top: .25rem; color: var(--muted); font-size: .68rem; }
 .st-key-relaxers { margin-top: 1.1rem; padding: 1rem 1.1rem; border: 1px dashed #c9d7cf; border-radius: 15px; background: rgba(255, 253, 248, .55); }
 .st-key-relaxers [data-testid="stButton"] button { min-height: 38px; border: 1px solid #b9d9ca !important; border-radius: 999px !important; background: #f0faf4 !important; color: #245d4c !important; font-size: .8rem; }
 .st-key-relaxers [data-testid="stButton"] button:hover { background: #e2f4ea !important; border-color: var(--aqua) !important; }
@@ -339,6 +350,137 @@ def render_card(opp, card_index, saved_names):
         st.caption(badge_detail)
 
 
+def render_analytics(opportunities, results, filter_counts):
+    """Render interactive charts from the live opportunity directory and filters."""
+    if results:
+        score_rows = []
+        for score in range(MAX_SCORE + 1):
+            label = match_label(score)[0]
+            score_rows.append({"Match level": label, "Opportunities": sum(opp.get("score", 0) == score for opp in results)})
+        type_rows = (
+            pd.Series([opp.get("type", "Other") for opp in results], dtype="string")
+            .value_counts()
+            .rename_axis("Opportunity type")
+            .reset_index(name="Opportunities")
+        )
+        format_rows = (
+            pd.Series([opp.get("format", "Other") for opp in results], dtype="string")
+            .value_counts()
+            .rename_axis("Format")
+            .reset_index(name="Opportunities")
+        )
+        deadline_rows = pd.DataFrame(
+            {
+                "Deadline status": ["Open", "Closing in 14 days", "Past deadline"],
+                "Opportunities": [
+                    sum((opp["deadline"] - TODAY).days >= 14 for opp in results),
+                    sum(0 <= (opp["deadline"] - TODAY).days < 14 for opp in results),
+                    sum((opp["deadline"] - TODAY).days < 0 for opp in results),
+                ],
+            }
+        )
+    else:
+        score_rows = [{"Match level": match_label(score)[0], "Opportunities": 0} for score in range(MAX_SCORE + 1)]
+        type_rows = pd.DataFrame({"Opportunity type": ["No matches"], "Opportunities": [0]})
+        format_rows = pd.DataFrame({"Format": ["No matches"], "Opportunities": [0]})
+        deadline_rows = pd.DataFrame({"Deadline status": ["No matches"], "Opportunities": [0]})
+
+    score_df = pd.DataFrame(score_rows)
+    average_score = (sum(opp.get("score", 0) for opp in results) / len(results)) if results else 0
+    strong_count = sum(opp.get("score", 0) >= 5 for opp in results)
+    free_count = sum(opp.get("cost_known") and opp.get("cost") == 0 for opp in results)
+    excluded_rows = pd.DataFrame(
+        {
+            "Filter signal": ["Over budget", "Different type", "Past deadline", "Below grade"],
+            "Listings": [
+                filter_counts["over_budget"],
+                filter_counts["different_type"],
+                filter_counts["deadline_passed"],
+                filter_counts["below_grade"],
+            ],
+        }
+    )
+
+    st.markdown(
+        '<section class="analytics-shell"><div class="analytics-heading"><div><p class="analytics-kicker">Live search intelligence</p><h2 class="analytics-title">See what is shaping your shortlist</h2></div><p class="analytics-note">Charts update with your filters · hover to inspect</p></div>',
+        unsafe_allow_html=True,
+    )
+    stat_cols = st.columns(4)
+    stat_data = [
+        ("Average match", f"{average_score:.1f}/{MAX_SCORE}", "across current results"),
+        ("Strong matches", str(strong_count), "5-point matches"),
+        ("Free options", str(free_count), "no listed individual cost"),
+        ("Directory size", str(len(opportunities)), "total listings indexed"),
+    ]
+    for col, (label, value, hint) in zip(stat_cols, stat_data):
+        with col:
+            st.markdown(
+                f'<div class="stat-tile"><div class="stat-label">{label}</div><div class="stat-value">{value}</div><div class="stat-hint">{hint}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+    chart_cols = st.columns(2)
+    with chart_cols[0]:
+        st.markdown("**Match strength**")
+        score_chart = (
+            alt.Chart(score_df)
+            .mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5, color="#43ad91")
+            .encode(
+                x=alt.X("Match level:N", sort=["Strong match", "Good match", "Partial match"], title=None),
+                y=alt.Y("Opportunities:Q", title="Listings", scale=alt.Scale(domain=[0, max(1, int(score_df["Opportunities"].max()))])),
+                tooltip=[alt.Tooltip("Match level:N", title="Match"), alt.Tooltip("Opportunities:Q", title="Listings")],
+            )
+            .properties(height=215)
+            .interactive()
+        )
+        st.altair_chart(score_chart, use_container_width=True)
+    with chart_cols[1]:
+        st.markdown("**Opportunity mix**")
+        type_chart = (
+            alt.Chart(type_rows)
+            .mark_bar(cornerRadiusEnd=5, color="#e86848")
+            .encode(
+                y=alt.Y("Opportunity type:N", sort="-x", title=None),
+                x=alt.X("Opportunities:Q", title="Listings"),
+                tooltip=[alt.Tooltip("Opportunity type:N", title="Type"), alt.Tooltip("Opportunities:Q", title="Listings")],
+            )
+            .properties(height=215)
+            .interactive()
+        )
+        st.altair_chart(type_chart, use_container_width=True)
+
+    detail_cols = st.columns(2)
+    with detail_cols[0]:
+        st.markdown("**Deadline pulse**")
+        deadline_chart = (
+            alt.Chart(deadline_rows)
+            .mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5, color="#f5bf48")
+            .encode(
+                x=alt.X("Deadline status:N", title=None),
+                y=alt.Y("Opportunities:Q", title="Listings"),
+                tooltip=[alt.Tooltip("Deadline status:N", title="Status"), alt.Tooltip("Opportunities:Q", title="Listings")],
+            )
+            .properties(height=190)
+            .interactive()
+        )
+        st.altair_chart(deadline_chart, use_container_width=True)
+    with detail_cols[1]:
+        st.markdown("**Filter pressure**")
+        filter_chart = (
+            alt.Chart(excluded_rows)
+            .mark_bar(cornerRadiusEnd=5, color="#6f8e83")
+            .encode(
+                y=alt.Y("Filter signal:N", sort="-x", title=None),
+                x=alt.X("Listings:Q", title="Listings outside current filter"),
+                tooltip=[alt.Tooltip("Filter signal:N", title="Signal"), alt.Tooltip("Listings:Q", title="Listings")],
+            )
+            .properties(height=190)
+            .interactive()
+        )
+        st.altair_chart(filter_chart, use_container_width=True)
+    st.markdown('</section>', unsafe_allow_html=True)
+
+
 try:
     # This file is small, so read it on each rerun. Caching without a file
     # timestamp can leave the app showing an older directory count after edits.
@@ -465,6 +607,7 @@ st.markdown(
     f'<div class="result-stat"><strong>{count} of {len(opportunities)} opportunities</strong> are currently on your board</div>',
     unsafe_allow_html=True,
 )
+render_analytics(opportunities, results, filter_counts)
 
 closing = [opp for opp in results if 0 <= (opp["deadline"] - TODAY).days < 14]
 if closing:
