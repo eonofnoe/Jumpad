@@ -10,500 +10,192 @@ from matching import MAX_SCORE, analyze_opportunities, cost_label
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "opportunities.json"
 SUBJECTS = ["Computer Science", "Math", "Science", "Engineering", "Physics"]
-TYPES = [
-    "Any",
-    "Competition",
-    "Summer Program",
-    "Internship",
-    "Research",
-    "Scholarship",
-    "Hackathon",
-]
+TYPES = ["Any", "Competition", "Summer Program", "Internship", "Research", "Scholarship", "Hackathon"]
 FORMATS = ["Both", "Online", "Onsite"]
 TODAY = datetime.now(ZoneInfo("America/New_York")).date()
 
-st.set_page_config(
-    page_title="Jumpad | STEM Opportunities",
-    page_icon="🧭",
-    layout="wide",
-)
+st.set_page_config(page_title="Jumpad | STEM Opportunities", page_icon="✦", layout="wide")
 
+# A warm editorial visual system with a deep green navigation rail. The UI uses
+# ordinary Streamlit components, so all existing controls retain their behavior.
 st.markdown(
     """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+
 :root {
-  --canvas: #fbfbfd;
-  --surface: #ffffff;
-  --surface-soft: #f4f4f6;
-  --border: #d8d8dc;
-  --text: #1d1d1f;
-  --muted: #59595f;
-  --accent: #b84427;
-  --accent-soft: #fff0eb;
-  --green: #17633c;
-  --green-soft: #eaf5ee;
-  --radius: 12px;
+  --ink: #12332c;
+  --ink-2: #245248;
+  --muted: #66746e;
+  --paper: #f7f3eb;
+  --paper-2: #fffdf8;
+  --line: #ded7ca;
+  --mint: #d9eee4;
+  --aqua: #43ad91;
+  --coral: #e86848;
+  --coral-deep: #b84c34;
+  --sun: #f5bf48;
+  --shadow: 0 14px 36px rgba(19, 48, 42, .09);
+  --radius: 18px;
 }
 
-/* Set the app font without overriding Streamlit's icon fonts. */
+* { box-sizing: border-box; }
 .stApp {
-  background: var(--canvas);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display",
-    "Segoe UI", sans-serif;
+  color: var(--ink);
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 88% 2%, rgba(210, 236, 219, .92) 0, rgba(210, 236, 219, 0) 24rem),
+    radial-gradient(circle at 52% 98%, rgba(255, 222, 173, .34) 0, rgba(255, 222, 173, 0) 29rem),
+    var(--paper);
 }
+[data-testid="stHeader"] { background: transparent; }
+.block-container { max-width: 1370px; padding: 1.45rem 2rem 4rem; }
 
-.block-container {
-  max-width: 1280px;
-  padding: 1.15rem 1.6rem 3rem;
+/* Sidebar */
+[data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+  background: linear-gradient(168deg, #10362f 0%, #0a2520 100%);
 }
-
-[data-testid="stSidebar"] {
-  background: #f5f5f7;
-  border-right: 1px solid var(--border);
+[data-testid="stSidebar"] { border-right: 0; }
+[data-testid="stSidebar"] .block-container { padding: 1.35rem 1rem 2.2rem; }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: rgba(240, 247, 240, .68); }
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] label { color: #f8f5eb; font-size: .83rem; font-weight: 700; letter-spacing: .01em; }
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label { color: rgba(250, 250, 244, .91) !important; font-size: .87rem; }
+[data-testid="stSidebar"] [data-testid="stCheckbox"] [data-testid="stCheckbox"] { accent-color: var(--sun); }
+.sidebar-brand { display: flex; gap: 11px; align-items: center; margin: .05rem 0 2rem; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 13px; background: var(--sun); color: #11342d; font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; font-weight: 700; transform: rotate(-7deg); }
+.brand-copy { display: flex; flex-direction: column; gap: 1px; }
+.brand-copy b { color: #fffdf6; font-size: 1rem; letter-spacing: .08em; }
+.brand-copy span { color: #a9c9bc; font-size: .72rem; font-weight: 600; }
+.side-eyebrow { margin: 0 0 .2rem; color: #a9c9bc; font-size: .7rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.side-heading { margin: 0 0 .85rem; color: #fffdf7; font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; line-height: 1.1; }
+.sidebar-divider { height: 1px; margin: 1.35rem 0; background: rgba(214, 238, 225, .18); }
+[data-testid="stSidebar"] [data-testid="stTextInput"] input,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stSlider"] > div > div {
+  background: rgba(255, 255, 255, .08) !important;
+  border: 1px solid rgba(220, 242, 230, .24) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  color: #fffdf7 !important;
 }
+[data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder { color: rgba(240, 247, 240, .45); }
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] span,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
+[data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--sun) !important; box-shadow: 0 0 0 3px rgba(245, 191, 72, .16) !important; }
+[data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] { background: var(--sun); border-color: var(--sun); }
+[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"],
+[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] { color: #d8eadf; }
+[data-testid="stSidebar"] [data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p { color: #eef6f0 !important; }
+[data-testid="stSidebar"] [data-testid="stCheckbox"] > label > span:first-child { border-color: rgba(235, 249, 240, .55); }
 
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3 {
-  color: var(--text);
-  letter-spacing: -.02em;
+/* Streamlit controls */
+[data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+  min-height: 42px; border: 1px solid var(--line) !important; border-radius: 12px !important; background: var(--paper-2) !important; color: var(--ink) !important; box-shadow: none !important;
 }
-
-[data-testid="stSidebar"] p,
-[data-testid="stCaptionContainer"] p {
-  color: var(--muted);
-  font-size: .84rem;
-  line-height: 1.45;
-}
-
-[data-testid="stCaptionContainer"] p {
-  font-size: .84rem !important;
-}
-
-[data-testid="stWidgetLabel"] p,
-[data-testid="stWidgetLabel"] label {
-  color: #343439;
-  font-size: .88rem;
-  font-weight: 600;
-}
-
-/* Light, readable inputs and dropdowns. */
-[data-testid="stTextInput"] input,
-[data-testid="stSelectbox"] [data-baseweb="select"] > div {
-  background: var(--surface) !important;
-  border: 1px solid #c8c8ce !important;
-  border-radius: var(--radius);
-  color: var(--text) !important;
-  min-height: 40px;
-  box-shadow: none;
-}
-
-[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] {
-  background: #fff !important;
-  border-radius: var(--radius);
-}
-
-[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] span {
-  color: var(--text) !important;
-}
-
-[data-baseweb="popover"],
-[data-baseweb="menu"] {
-  background: #fff !important;
-}
-
-[data-baseweb="menu"] li {
-  color: var(--text) !important;
-}
-
-[data-testid="stTextInput"] input:focus,
-[data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(184, 68, 39, .17);
-}
-
-[data-testid="stSlider"] [role="slider"] {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-[data-testid="stSlider"] [data-testid="stTickBar"] {
-  color: var(--muted);
-}
-
-.app-header {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin: 0 0 10px;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  line-height: 1.15;
-  letter-spacing: -.04em;
-  color: var(--text);
-}
-
-.app-header p {
-  margin: 0;
-  color: var(--muted);
-  font-size: .96rem;
-}
-
-.result-stat {
-  margin: 0 0 14px;
-  color: #39393e;
-  font-size: .94rem;
-  line-height: 1.4;
-}
-
-.result-stat strong {
-  color: var(--text);
-  font-size: 1.08rem;
-}
-
-.eyebrow {
-  color: var(--muted);
-  font-size: .82rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.chip-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0 12px;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  min-height: 27px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #eeeeF1;
-  color: #343439;
-  font-size: .82rem;
-  font-weight: 650;
-}
-
-.tag.type {
-  background: #f2eae7;
-  color: #593124;
-}
-
-.tag.format {
-  background: #eaf0f6;
-  color: #263d54;
-}
-
-.tag.free {
-  background: var(--green-soft);
-  color: var(--green);
-}
-
-/* Larger, colored match badges. */
-.match-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 7px 13px;
-  border-radius: 999px;
-  background: #f1f1f3;
-  border: 1px solid #d8d8dc;
-  color: #303035;
-  font-size: .92rem;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
-.match-badge.strong {
-  background: #eaf5ee;
-  color: #155b38;
-  border-color: #b9d9c5;
-}
-
-.match-badge.good {
-  background: #fff4e5;
-  color: #704600;
-  border-color: #ead2ad;
-}
-
-.match-badge.partial {
-  background: #fff0d9;
-  color: #704600;
-  border-color: #e4c28d;
-}
-
-.desc-clamp {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  margin: 4px 0 14px;
-  color: #44444a;
-  font-size: .92rem;
-  line-height: 1.48;
-  min-height: 2.72em;
-}
-
-.metadata {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.25fr 1fr 1.5fr;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid #e7e7e9;
-  border-bottom: 1px solid #e7e7e9;
-}
-
-.meta-item {
-  min-width: 0;
-}
-
-.meta-label {
-  margin-bottom: 4px;
-  color: #424248;
-  font-size: .88rem;
-  font-weight: 700;
-  letter-spacing: .01em;
-}
-
-.meta-value {
-  color: #303035;
-  font-size: .94rem;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-.deadline .meta-value {
-  font-weight: 750;
-}
-
-.deadline.soon .meta-value,
-.deadline.closed .meta-value {
-  color: var(--accent);
-}
-
-.why-line {
-  margin: 10px 0 4px;
-  color: #36363b;
-  font-size: .89rem;
-  line-height: 1.4;
-}
-
-.closing-strip {
-  padding: 10px 12px;
-  margin: 0 0 12px;
-  border: 1px solid #e2c2b8;
-  border-radius: var(--radius);
-  background: #fff7f4;
-}
-
-.closing-title {
-  margin: 0 0 6px;
-  color: #74321f;
-  font-size: .86rem;
-  font-weight: 750;
-}
-
-.closing-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  color: #503b35;
-  font-size: .85rem;
-}
-
-.closing-items a {
-  color: #76351f;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.compact-note {
-  color: var(--muted);
-  font-size: .84rem;
-  line-height: 1.4;
-}
-
-.filter-explainer {
-  margin: 4px 0;
-  color: #37373d;
-  font-size: .88rem;
-  line-height: 1.45;
-}
-
-.section-title {
-  margin: 4px 0;
-  color: var(--text);
-  font-size: 1.08rem !important;
-  letter-spacing: -.02em;
-}
-
-.opportunity-title {
-  color: var(--text);
-  font-size: 1.16rem;
-  line-height: 1.3;
-  font-weight: 750;
-  letter-spacing: -.02em;
-  text-decoration: none;
-}
-
-.opportunity-title:hover {
-  color: #78321e;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.st-key-filter-links button,
-.st-key-reset-button button {
-  min-height: 36px;
-  padding: 4px 7px;
-  border: 0;
-  background: transparent;
-  color: #6f2c1b;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  font-size: .86rem;
-  box-shadow: none;
-}
-
-.st-key-relaxers button {
-  min-height: 40px;
-  padding: 7px 12px;
-  border: 1px solid #bd745f;
-  border-radius: 999px !important;
-  background: #fff7f4;
-  color: #632714;
-  font-size: .88rem;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.st-key-filter-links button,
-.st-key-reset-button button {
-  border-radius: var(--radius) !important;
-}
-
-.st-key-filter-links button:hover,
-.st-key-reset-button button:hover {
-  color: #822f17;
-  background: #f6e9e4;
-}
-
-.st-key-relaxers button:hover {
-  color: #4e1e10;
-  border-color: var(--accent);
-  background: #fbe6de;
-}
-
-.st-key-opportunity-list [data-testid="stVerticalBlockBorderWrapper"] {
-  border-color: var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, .035);
-  transition: border-color .16s ease, box-shadow .16s ease;
-}
-
-.st-key-opportunity-list [data-testid="stVerticalBlockBorderWrapper"]:hover {
-  border-color: #b9a49d;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, .07);
-}
-
-[data-testid="stExpander"] {
-  border-color: var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
-/* Make Save and View details buttons readable. */
-[data-testid="stLinkButton"] a {
-  min-height: 40px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  background: #fff !important;
-  font-weight: 700;
-  visibility: visible !important;
-}
-
-[data-testid="stLinkButton"] a:hover {
-  border-color: #a69d99 !important;
-  color: #712e1c !important;
-  background: #faf7f6 !important;
-}
-
+[data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--aqua) !important; box-shadow: 0 0 0 3px rgba(67, 173, 145, .14) !important; }
+[data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label { color: var(--ink); font-size: .84rem; font-weight: 700; }
+[data-baseweb="popover"], [data-baseweb="menu"] { background: #fffdf8 !important; }
+[data-baseweb="menu"] li { color: var(--ink) !important; }
 [data-testid="stButton"] button {
-  min-height: 40px;
-  color: var(--text) !important;
-  background: #fff !important;
-  border: 1px solid #c8c8ce !important;
-  border-radius: var(--radius) !important;
-  visibility: visible !important;
+  min-height: 39px; border: 1px solid var(--line) !important; border-radius: 11px !important; background: var(--paper-2) !important; color: var(--ink) !important; box-shadow: none !important; font-weight: 700; transition: transform .16s ease, border-color .16s ease, background .16s ease;
 }
+[data-testid="stButton"] button:hover { transform: translateY(-1px); border-color: var(--aqua) !important; background: #f1faf5 !important; color: var(--ink) !important; }
+[data-testid="stLinkButton"] a { min-height: 42px; border: 1px solid var(--ink) !important; border-radius: 11px !important; background: var(--ink) !important; color: #fffdf7 !important; font-weight: 700; transition: transform .16s ease, background .16s ease; }
+[data-testid="stLinkButton"] a:hover { transform: translateY(-1px); background: var(--ink-2) !important; border-color: var(--ink-2) !important; }
+[data-testid="stExpander"] { border: 1px solid #e6dfd4 !important; border-radius: 12px !important; background: #fbfaf6 !important; }
+[data-testid="stExpander"] summary { color: var(--ink); font-weight: 700; }
+[data-testid="stCheckbox"] label { min-height: 36px; }
 
-.st-key-relaxers [data-testid="stButton"] button {
-  min-height: 40px;
-  padding: 7px 12px;
-  border: 1px solid #bd745f !important;
-  border-radius: 999px !important;
-  background: #fff7f4 !important;
-  color: #632714 !important;
-  font-size: .88rem;
-  font-weight: 700;
+/* Sidebar actions */
+.st-key-filter-links button, .st-key-reset-button button { min-height: 31px; padding: 2px 5px; border: 0 !important; border-radius: 8px !important; background: transparent !important; color: #bce0ce !important; font-size: .77rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.st-key-filter-links button:hover, .st-key-reset-button button:hover { transform: none; background: rgba(255,255,255,.08) !important; color: #fffdf7 !important; }
+.sidebar-budget { margin: -2px 0 5px; color: #b7d2c3; font-size: .75rem; }
+.sidebar-budget strong { color: var(--sun); }
+
+/* Hero */
+.hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr); gap: 2rem; align-items: stretch; overflow: hidden; min-height: 237px; padding: 2.2rem 2.4rem; border: 1px solid rgba(29, 81, 69, .15); border-radius: 26px; background: linear-gradient(118deg, #19483e 0%, #174139 58%, #276357 100%); box-shadow: 0 15px 34px rgba(19, 48, 42, .13); }
+.hero::before { content: ""; position: absolute; right: 19%; bottom: -115px; width: 240px; height: 240px; border: 1px solid rgba(239, 250, 242, .16); border-radius: 50%; box-shadow: 0 0 0 31px rgba(239, 250, 242, .05), 0 0 0 65px rgba(239, 250, 242, .04); }
+.hero::after { content: ""; position: absolute; width: 16px; height: 16px; left: 48%; top: 24px; border-radius: 50%; background: var(--sun); box-shadow: 187px 72px 0 -4px var(--coral), 241px -8px 0 -6px #b8e4d3; opacity: .98; }
+.hero-copy, .hero-summary { position: relative; z-index: 1; }
+.hero-copy { max-width: 700px; }
+.hero-kicker { display: flex; align-items: center; gap: 8px; color: #bce2d0; font-size: .74rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.hero-kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 4px rgba(245, 191, 72, .15); }
+.hero h1 { margin: .66rem 0 .55rem; color: #fffdf6; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.35rem, 4vw, 4.1rem); font-weight: 600; letter-spacing: -.055em; line-height: .96; }
+.hero h1 em { color: #bce9d7; font-style: italic; }
+.hero p { max-width: 540px; margin: 0; color: #c6ddd3; font-size: 1rem; line-height: 1.52; }
+.hero-summary { display: flex; align-items: flex-end; justify-content: flex-end; }
+.hero-count { width: min(100%, 235px); padding: 1.2rem 1.25rem; border: 1px solid rgba(246, 253, 248, .2); border-radius: 18px; background: rgba(10, 37, 32, .28); backdrop-filter: blur(5px); }
+.hero-count strong { display: block; color: var(--sun); font-family: "Fraunces", Georgia, serif; font-size: 3.05rem; line-height: .95; letter-spacing: -.055em; }
+.hero-count span { display: block; margin-top: .5rem; color: #e0ede5; font-size: .8rem; font-weight: 600; line-height: 1.35; }
+
+/* Results shell */
+.results-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin: 1.65rem 0 .55rem; }
+.results-label { margin: 0 0 .18rem; color: var(--aqua); font-size: .73rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.results-title { margin: 0; color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.66rem; font-weight: 600; letter-spacing: -.04em; }
+.result-stat { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; color: var(--muted); font-size: .9rem; }
+.result-stat::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--aqua); box-shadow: 0 0 0 4px rgba(67, 173, 145, .12); }
+.result-stat strong { color: var(--ink); font-weight: 700; }
+.sort-wrap { min-width: 210px; }
+.sort-wrap [data-testid="stSelectbox"] > div > div { min-height: 40px; }
+.saved-toggle [data-testid="stCheckbox"] { margin-top: .35rem; }
+.saved-toggle [data-testid="stCheckbox"] label { color: var(--ink); font-weight: 700; }
+
+/* Opportunity cards */
+[class*="st-key-opportunity-list"] [data-testid="stVerticalBlockBorderWrapper"] { border: 1px solid rgba(25, 72, 62, .14) !important; border-radius: var(--radius) !important; background: rgba(255, 253, 248, .94) !important; box-shadow: 0 8px 24px rgba(30, 56, 49, .055); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+[class*="st-key-opportunity-list"] [data-testid="stVerticalBlockBorderWrapper"]:hover { transform: translateY(-3px); border-color: rgba(67, 173, 145, .62) !important; box-shadow: var(--shadow); }
+.opportunity-title { color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; font-weight: 600; letter-spacing: -.027em; line-height: 1.2; text-decoration: none; }
+.opportunity-title:hover { color: var(--coral-deep); text-decoration: underline; text-decoration-color: rgba(232, 104, 72, .5); text-underline-offset: 4px; }
+.match-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 7px 10px; border: 1px solid #ded9ce; border-radius: 999px; background: #f4f0e9; color: #405750; font-size: .77rem; font-weight: 700; white-space: nowrap; }
+.match-badge.strong { border-color: #a5d6c4; background: #e7f5ed; color: #236550; }
+.match-badge.good { border-color: #f1d498; background: #fff3d9; color: #805613; }
+.match-badge.partial { border-color: #e5cdc0; background: #fff0e9; color: #9b4b36; }
+.chip-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 9px 0 11px; }
+.tag { display: inline-flex; align-items: center; min-height: 25px; padding: 4px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; letter-spacing: .01em; }
+.tag.type { background: #e6f3ec; color: #28634f; }
+.tag.format { background: #eaf0f4; color: #365566; }
+.tag.free { background: #e4f4e9; color: #24704f; }
+.desc-clamp { display: -webkit-box; min-height: 2.75em; margin: 4px 0 15px; overflow: hidden; color: #53635d; font-size: .9rem; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.metadata { display: grid; grid-template-columns: 1.3fr .95fr 1.25fr .8fr 1.25fr; gap: 12px; padding: 13px 0; border-top: 1px solid #ebe5db; border-bottom: 1px solid #ebe5db; }
+.meta-item { min-width: 0; }
+.meta-label { margin-bottom: 4px; color: #8a9690; font-size: .69rem; font-weight: 700; letter-spacing: .075em; text-transform: uppercase; }
+.meta-value { color: #28423a; font-size: .86rem; font-weight: 600; line-height: 1.42; overflow-wrap: anywhere; }
+.deadline .meta-value { font-weight: 700; }
+.deadline.soon .meta-value, .deadline.closed .meta-value { color: var(--coral-deep); }
+.why-line { margin: 11px 0 6px; color: #4f5f58; font-size: .85rem; line-height: 1.45; }
+.why-line strong { color: var(--ink); }
+
+/* Discovery helpers */
+.closing-strip { position: relative; overflow: hidden; padding: 13px 15px; margin: 0 0 14px; border: 1px solid #f0d49b; border-radius: 14px; background: linear-gradient(100deg, #fff7e7, #fffdf8); }
+.closing-strip::after { content: ""; position: absolute; right: 18px; top: -22px; width: 80px; height: 80px; border: 12px solid rgba(245, 191, 72, .18); border-radius: 50%; }
+.closing-title { position: relative; z-index: 1; margin: 0 0 6px; color: #795313; font-size: .78rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.closing-items { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px 18px; color: #765f3a; font-size: .84rem; }
+.closing-items a { color: #775015; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(119, 80, 21, .35); }
+.closing-items a:hover { color: var(--coral-deep); }
+.filter-explainer { margin: 7px 0; color: var(--muted); font-size: .85rem; line-height: 1.45; }
+.compact-note { color: var(--muted); font-size: .82rem; line-height: 1.42; }
+.section-title { margin: 1.8rem 0 .7rem; color: var(--ink); font-family: "Fraunces", Georgia, serif; font-size: 1.48rem !important; font-weight: 600; letter-spacing: -.035em; }
+.st-key-relaxers { margin-top: 1.1rem; padding: 1rem 1.1rem; border: 1px dashed #c9d7cf; border-radius: 15px; background: rgba(255, 253, 248, .55); }
+.st-key-relaxers [data-testid="stButton"] button { min-height: 38px; border: 1px solid #b9d9ca !important; border-radius: 999px !important; background: #f0faf4 !important; color: #245d4c !important; font-size: .8rem; }
+.st-key-relaxers [data-testid="stButton"] button:hover { background: #e2f4ea !important; border-color: var(--aqua) !important; }
+
+@media (max-width: 900px) {
+  .block-container { padding: 1rem 1rem 3rem; }
+  .hero { grid-template-columns: 1fr; min-height: 0; padding: 1.8rem; }
+  .hero-summary { justify-content: flex-start; }
+  .hero-count { width: 210px; }
+  .metadata { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-
-.st-key-relaxers [data-testid="stButton"] button:hover {
-  border-color: var(--accent) !important;
-  background: #fbe6de !important;
-  color: #4e1e10 !important;
-}
-
-[data-testid="stCheckbox"] label {
-  min-height: 40px;
-}
-
-@media (max-width: 800px) {
-  .block-container {
-    padding: 1rem 1rem 2.5rem;
-  }
-
-  .metadata {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 12px;
-  }
-}
-
 @media (max-width: 640px) {
-  .app-header {
-    gap: 5px;
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .app-header h1 {
-    font-size: 1.65rem;
-  }
-
-  .metadata {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .st-key-opportunity-list [data-testid="stHorizontalBlock"] {
-    gap: .5rem;
-  }
-
-  .st-key-opportunity-list [data-testid="stButton"] button {
-    min-height: 44px;
-  }
+  .hero { border-radius: 20px; }
+  .hero h1 { font-size: 2.5rem; }
+  .results-toolbar { align-items: stretch; flex-direction: column; }
+  .sort-wrap { min-width: 100%; }
+  .metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  [class*="st-key-opportunity-list"] [data-testid="stHorizontalBlock"] { gap: .45rem; }
+  [class*="st-key-opportunity-list"] [data-testid="stButton"] button { min-height: 42px; font-size: .78rem; }
 }
 </style>
 """,
@@ -516,15 +208,11 @@ def load_opportunities():
         with DATA_FILE.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
     except FileNotFoundError as exc:
-        raise RuntimeError(
-            f"Opportunity data file not found: {DATA_FILE.name}"
-        ) from exc
+        raise RuntimeError(f"Opportunity data file not found: {DATA_FILE.name}") from exc
     except (json.JSONDecodeError, OSError) as exc:
         raise RuntimeError(f"Could not read {DATA_FILE.name}: {exc}") from exc
-
     if not isinstance(data, list):
         raise RuntimeError("The opportunity data must be a JSON list.")
-
     return data
 
 
@@ -532,55 +220,43 @@ def safe(value):
     return html.escape(str(value), quote=True)
 
 
-def subject_key(subject):
-    return "interest_" + "_".join(subject.lower().split())
-
-
 def reset_filters():
     defaults = {
-        "profile_name": "",
-        "profile_grade": 9,
-        "selected_subjects": ["Computer Science"],
-        "preferred_format": "Both",
-        "chosen_type": "Any",
-        "budget": 500,
-        "free_only": False,
-        "include_saved_only": False,
-        "sort_order": "Best match",
-        "relax_budget": False,
-        "relax_type": False,
-        "relax_deadline": False,
+        "profile_name": "", "profile_grade": 9, "selected_subjects": ["Computer Science"],
+        "preferred_format": "Both", "chosen_type": "Any", "budget": 500,
+        "free_only": False, "include_saved_only": False, "sort_order": "Best match",
+        "relax_budget": False, "relax_type": False, "relax_deadline": False,
     }
-
     for key, value in defaults.items():
         st.session_state[key] = value
-
     for subject in SUBJECTS:
         st.session_state[subject_key(subject)] = subject == "Computer Science"
 
 
+def subject_key(subject):
+    return "interest_" + "_".join(subject.lower().split())
+
+
 def set_all_subjects(value):
     st.session_state["selected_subjects"] = SUBJECTS.copy() if value else []
-
     for subject in SUBJECTS:
         st.session_state[subject_key(subject)] = value
 
 
 def relative_deadline(deadline):
     days = (deadline - TODAY).days
-
     if days < 0:
         return "Closed", "closed"
     if days == 0:
         return "Closes today", "soon"
     if days == 1:
         return "Closes in 1 day", "soon"
-
     cue = f"Closes in {days} days"
     return cue, "soon" if days < 14 else ""
 
 
 def match_label(score):
+    # Thresholds: 5 = Strong, 3–4 = Good, and 0–2 = Partial against the 5-point scale.
     if score >= 5:
         return "Strong match", "strong"
     if score >= 3:
@@ -592,275 +268,134 @@ def render_card(opp, card_index, saved_names):
     name = opp["name"]
     key = f"save_{card_index}_{abs(hash(name))}"
     is_saved = name in saved_names
-
     badge, badge_class = match_label(opp["score"])
     badge_detail = f"{opp['score']} of {MAX_SCORE} match points"
     relative, deadline_class = relative_deadline(opp["deadline"])
     deadline_date = opp["deadline"].strftime("%b %d, %Y")
     price = cost_label(opp)
     free = opp.get("cost_known") and opp.get("cost") == 0
-
     with st.container(border=True, key=f"opportunity-list-{card_index}"):
         title_col, badge_col, save_col = st.columns([6.4, 1.7, 1.1])
-
         with title_col:
             st.markdown(
-                f'<a class="opportunity-title" href="{safe(opp["link"])}" '
-                f'target="_blank" rel="noopener noreferrer">'
-                f'{safe(name)} ↗</a>',
+                f'<a class="opportunity-title" href="{safe(opp["link"])}" target="_blank" rel="noopener noreferrer">{safe(name)} ↗</a>',
                 unsafe_allow_html=True,
             )
-
         with badge_col:
             st.markdown(
-                f'<span class="match-badge {badge_class}" '
-                f'title="{safe(badge_detail)}">{badge}</span>',
+                f'<span class="match-badge {badge_class}" title="{safe(badge_detail)}">{badge}</span>',
                 unsafe_allow_html=True,
             )
-
         with save_col:
             if st.button(
                 "★ Saved" if is_saved else "☆ Save",
                 key=key,
-                help=(
-                    "Save this opportunity"
-                    if not is_saved
-                    else "Remove from saved opportunities"
-                ),
+                help="Save this opportunity" if not is_saved else "Remove from saved opportunities",
             ):
                 updated = set(st.session_state.get("saved_opportunities", []))
-
                 if name in updated:
                     updated.remove(name)
                 else:
                     updated.add(name)
-
                 st.session_state["saved_opportunities"] = sorted(updated)
                 st.rerun()
 
-        type_tag, format_tag = st.columns([1, 5])
-
-        with type_tag:
-            st.markdown(
-                f'<span class="tag type">{safe(opp["type"])}</span>',
-                unsafe_allow_html=True,
-            )
-
-        with format_tag:
-            st.markdown(
-                f'<span class="tag format">{safe(opp["format"])}</span>',
-                unsafe_allow_html=True,
-            )
-
         st.markdown(
-            f'<div class="desc-clamp">{safe(opp["description"])}</div>',
+            f'<div class="chip-row"><span class="tag type">{safe(opp["type"])}</span><span class="tag format">{safe(opp["format"])}</span></div>',
             unsafe_allow_html=True,
         )
-
+        st.markdown(f'<div class="desc-clamp">{safe(opp["description"])}</div>', unsafe_allow_html=True)
         subjects = ", ".join(opp["subjects"]) or "General"
-        cost_display = (
-            '<span class="tag free">Free</span>'
-            if free
-            else safe(price)
-        )
-
+        cost_display = '<span class="tag free">Free</span>' if free else safe(price)
         deadline_markup = (
-            f'<div class="meta-item deadline {deadline_class}">'
-            f'<div class="meta-label">Deadline</div>'
-            f'<div class="meta-value">{safe(deadline_date)}<br>'
-            f'{safe(relative)}</div></div>'
+            f'<div class="meta-item deadline {deadline_class}"><div class="meta-label">Deadline</div>'
+            f'<div class="meta-value">{safe(deadline_date)}<br>{safe(relative)}</div></div>'
         )
-
         st.markdown(
             f"""
-<div class="metadata">
-  <div class="meta-item">
-    <div class="meta-label">Subject</div>
-    <div class="meta-value">{safe(subjects)}</div>
-  </div>
-  <div class="meta-item">
-    <div class="meta-label">Minimum grade</div>
-    <div class="meta-value">{safe(opp["grade_label"])}</div>
-  </div>
-  <div class="meta-item">
-    <div class="meta-label">Location</div>
-    <div class="meta-value">{safe(opp["location"])}</div>
-  </div>
-  <div class="meta-item">
-    <div class="meta-label">Cost</div>
-    <div class="meta-value">{cost_display}</div>
-  </div>
-  {deadline_markup}
-</div>
-""",
+            <div class="metadata">
+              <div class="meta-item"><div class="meta-label">Subject</div><div class="meta-value">{safe(subjects)}</div></div>
+              <div class="meta-item"><div class="meta-label">Minimum grade</div><div class="meta-value">{safe(opp['grade_label'])}</div></div>
+              <div class="meta-item"><div class="meta-label">Location</div><div class="meta-value">{safe(opp['location'])}</div></div>
+              <div class="meta-item"><div class="meta-label">Cost</div><div class="meta-value">{cost_display}</div></div>
+              {deadline_markup}
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-
         st.markdown(
-            f'<div class="why-line"><strong>Why it matches:</strong> '
-            f'{safe(" ".join(opp["reasons"]))}</div>',
+            f'<div class="why-line"><strong>Why it matches:</strong> {safe(" ".join(opp["reasons"]))}</div>',
             unsafe_allow_html=True,
         )
-
         with st.expander("See eligibility details", expanded=False):
             for check in opp["eligibility_checks"]:
                 if opp["deadline"] < TODAY and check.startswith("Deadline ("):
                     check = (
-                        f"Deadline ({opp['deadline'].isoformat()}) has passed; "
-                        "this listing is shown because closed listings are "
-                        "included. Check the organizer for a new cycle."
+                        f"Deadline ({opp['deadline'].isoformat()}) has passed; this listing is shown because closed listings "
+                        "are included. Check the organizer for a new cycle."
                     )
-
                 st.markdown(f"- {safe(check)}")
-
         st.link_button("View details", opp["link"])
         st.caption(badge_detail)
 
 
 try:
+    # This file is small, so read it on each rerun. Caching without a file
+    # timestamp can leave the app showing an older directory count after edits.
     opportunities = load_opportunities()
 except RuntimeError as error:
     st.error(str(error))
     st.stop()
 
-
 with st.sidebar:
-    st.markdown("### About you")
-
-    name = st.text_input(
-        "Name (optional)",
-        max_chars=60,
-        placeholder="e.g. Alex",
-        key="profile_name",
+    st.markdown(
+        '<div class="sidebar-brand"><div class="brand-mark">J</div><div class="brand-copy"><b>JUMPAD</b><span>Opportunity explorer</span></div></div>',
+        unsafe_allow_html=True,
     )
-
-    grade = st.selectbox(
-        "Current grade",
-        list(range(6, 13)),
-        index=3,
-        format_func=lambda value: f"Grade {value}",
-        key="profile_grade",
-    )
-
-    st.markdown("### What you want")
+    st.markdown('<p class="side-eyebrow">Your profile</p><h2 class="side-heading">Make the list yours.</h2>', unsafe_allow_html=True)
+    name = st.text_input("Name (optional)", max_chars=60, placeholder="e.g. Alex", key="profile_name")
+    grade = st.selectbox("Current grade", list(range(6, 13)), index=3, format_func=lambda value: f"Grade {value}", key="profile_grade")
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<p class="side-eyebrow">Shape your search</p><h2 class="side-heading">What sparks your curiosity?</h2>', unsafe_allow_html=True)
     st.markdown("**Interests**")
-
     with st.container(key="filter-links"):
         link_col1, link_col2 = st.columns(2)
-
         with link_col1:
-            st.button(
-                "Select all",
-                key="select_all",
-                on_click=set_all_subjects,
-                args=(True,),
-                help="Select every interest",
-            )
-
+            st.button("Select all", key="select_all", on_click=set_all_subjects, args=(True,), help="Select every interest")
         with link_col2:
-            st.button(
-                "Clear all",
-                key="clear_all",
-                on_click=set_all_subjects,
-                args=(False,),
-                help="Clear selected interests",
-            )
-
+            st.button("Clear all", key="clear_all", on_click=set_all_subjects, args=(False,), help="Clear selected interests")
+    # Checkboxes provide compact multi-select and avoid the empty "No results"
+    # dropdown that can remain open after selecting every option.
     if "selected_subjects" not in st.session_state:
         st.session_state["selected_subjects"] = ["Computer Science"]
-
     selected_before_run = set(st.session_state.get("selected_subjects", []))
-
     for subject in SUBJECTS:
         key = subject_key(subject)
-
         if key not in st.session_state:
             st.session_state[key] = subject in selected_before_run
-
     interest_cols = st.columns(2)
-
     for index, subject in enumerate(SUBJECTS):
         with interest_cols[index % 2]:
             st.checkbox(subject, key=subject_key(subject))
-
-    st.session_state["selected_subjects"] = [
-        subject
-        for subject in SUBJECTS
-        if st.session_state.get(subject_key(subject), False)
-    ]
-
-    preferred_format = st.selectbox(
-        "Preferred format",
-        FORMATS,
-        key="preferred_format",
-    )
-
-    chosen_type = st.selectbox(
-        "Opportunity type",
-        TYPES,
-        key="chosen_type",
-    )
-
-    budget = st.slider(
-        "Maximum budget",
-        min_value=0,
-        max_value=6000,
-        value=500,
-        step=50,
-        format="$%d",
-        key="budget",
-    )
-
+    st.session_state["selected_subjects"] = [subject for subject in SUBJECTS if st.session_state.get(subject_key(subject), False)]
+    preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
+    chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
+    budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
     st.markdown(
-        f'<div class="compact-note"><strong>Up to ${budget:,}</strong><br>'
-        '$0 <span style="float:right">$6,000</span></div>',
+        f'<div class="sidebar-budget"><strong>Up to ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
         unsafe_allow_html=True,
     )
-
     st.checkbox("Free only", key="free_only")
-    st.caption(
-        "Team fees and unconfirmed costs are surfaced for you to check "
-        "with the organizer."
-    )
-
-    st.divider()
-
+    st.caption("Team fees and unconfirmed costs are surfaced for you to check with the organizer.")
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
     with st.container(key="reset-button"):
-        st.button(
-            "Reset all filters",
-            key="reset_all",
-            on_click=reset_filters,
-            help="Restore the default profile and filters",
-        )
-
-
-st.markdown(
-    '<header class="app-header"><h1>Jumpad</h1>'
-    "<p>Find your next STEM opportunity.</p></header>",
-    unsafe_allow_html=True,
-)
+        st.button("Reset all filters", key="reset_all", on_click=reset_filters, help="Restore the default profile and filters")
 
 results, filter_counts = analyze_opportunities(
-    opportunities,
-    grade,
-    budget,
-    st.session_state.get("selected_subjects", []),
-    preferred_format,
-    chosen_type,
-    today=TODAY,
+    opportunities, grade, budget, st.session_state.get("selected_subjects", []), preferred_format, chosen_type, today=TODAY
 )
-
 if st.session_state.get("relax_budget", False):
-    results, _ = analyze_opportunities(
-        opportunities,
-        grade,
-        6000,
-        st.session_state.get("selected_subjects", []),
-        preferred_format,
-        chosen_type,
-        today=TODAY,
-    )
-
+    results, _ = analyze_opportunities(opportunities, grade, 6000, st.session_state.get("selected_subjects", []), preferred_format, chosen_type, today=TODAY)
 if st.session_state.get("relax_type", False):
     results, _ = analyze_opportunities(
         opportunities,
@@ -871,7 +406,6 @@ if st.session_state.get("relax_type", False):
         "Any",
         today=TODAY,
     )
-
 if st.session_state.get("relax_deadline", False):
     results, _ = analyze_opportunities(
         opportunities,
@@ -882,214 +416,111 @@ if st.session_state.get("relax_deadline", False):
         "Any" if st.session_state.get("relax_type", False) else chosen_type,
         today=date.min,
     )
-
 if st.session_state.get("free_only", False):
-    results = [
-        opp
-        for opp in results
-        if opp.get("cost_known") and opp.get("cost") == 0
-    ]
+    results = [opp for opp in results if opp.get("cost_known") and opp.get("cost") == 0]
 
 saved_names = set(st.session_state.get("saved_opportunities", []))
+count_before_saved_filter = len(results)
+user_name = safe(name.strip()) if name.strip() else "your next chapter"
 
-if st.checkbox(
-    f"Saved ({len(saved_names)})",
-    key="include_saved_only",
-    help="Show only saved opportunities",
-):
+st.markdown(
+    f"""
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="hero-kicker">Curated STEM opportunities</div>
+        <h1>Find a path<br>toward <em>{user_name}.</em></h1>
+        <p>Explore programs, challenges, and experiences shaped around your interests, grade, and goals.</p>
+      </div>
+      <div class="hero-summary">
+        <div class="hero-count"><strong>{count_before_saved_filter}</strong><span>opportunities fit your search right now</span></div>
+      </div>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+left_toolbar, middle_toolbar, right_toolbar = st.columns([4.4, 1.4, 1.65])
+with left_toolbar:
+    st.markdown('<div class="results-toolbar"><div><p class="results-label">Discovery board</p><h2 class="results-title">Your opportunity shortlist</h2></div></div>', unsafe_allow_html=True)
+with middle_toolbar:
+    with st.container(key="saved-toggle"):
+        saved_only = st.checkbox(f"Saved ({len(saved_names)})", key="include_saved_only", help="Show only saved opportunities")
+with right_toolbar:
+    with st.container(key="sort-wrap"):
+        sort_order = st.selectbox("Sort results", ["Best match", "Deadline soonest", "Cost lowest"], key="sort_order")
+
+if saved_only:
     results = [opp for opp in results if opp["name"] in saved_names]
-
-sort_col, _ = st.columns([1.4, 5])
-
-with sort_col:
-    sort_order = st.selectbox(
-        "Sort results",
-        ["Best match", "Deadline soonest", "Cost lowest"],
-        label_visibility="collapsed",
-        key="sort_order",
-    )
 
 if sort_order == "Deadline soonest":
     results = sorted(results, key=lambda opp: opp["deadline"])
 elif sort_order == "Cost lowest":
     results = sorted(
         results,
-        key=lambda opp: (
-            not opp["cost_known"],
-            opp["cost"] if opp["cost_known"] else float("inf"),
-            opp["deadline"],
-        ),
+        key=lambda opp: (not opp["cost_known"], opp["cost"] if opp["cost_known"] else float("inf"), opp["deadline"]),
     )
 
 count = len(results)
-
 st.markdown(
-    f'<div class="result-stat"><strong>{len(opportunities)} '
-    f'opportunities listed</strong> · {count} currently fit your filters</div>',
+    f'<div class="result-stat"><strong>{count} of {len(opportunities)} opportunities</strong> are currently on your board</div>',
     unsafe_allow_html=True,
 )
 
-closing = [
-    opp
-    for opp in results
-    if 0 <= (opp["deadline"] - TODAY).days < 14
-]
-
+closing = [opp for opp in results if 0 <= (opp["deadline"] - TODAY).days < 14]
 if closing:
     closing = sorted(closing, key=lambda opp: opp["deadline"])[:3]
-
     links = "".join(
-        f'<span><a href="{safe(opp["link"])}" target="_blank" '
-        f'rel="noopener noreferrer">{safe(opp["name"])}</a> · '
-        f'{safe(relative_deadline(opp["deadline"])[0])}</span>'
-        for opp in closing
+        f'<span><a href="{safe(o["link"])}" target="_blank" rel="noopener noreferrer">{safe(o["name"])}</a> · {safe(relative_deadline(o["deadline"])[0])}</span>'
+        for o in closing
     )
-
     st.markdown(
-        f'<section class="closing-strip">'
-        f'<div class="closing-title">Closing soon</div>'
-        f'<div class="closing-items">{links}</div></section>',
+        f'<section class="closing-strip"><div class="closing-title">Closing soon</div><div class="closing-items">{links}</div></section>',
         unsafe_allow_html=True,
     )
-
 
 if filter_counts["below_grade"]:
-    count_word = (
-        "listing" if filter_counts["below_grade"] == 1 else "listings"
-    )
+    count_word = "listing" if filter_counts["below_grade"] == 1 else "listings"
     st.markdown(
-        f'<div class="filter-explainer">'
-        f'{filter_counts["below_grade"]} {count_word} require a higher grade '
-        f'than Grade {grade}. Grade eligibility is informational and can’t '
-        f'be relaxed here.</div>',
+        f'<div class="filter-explainer">{filter_counts["below_grade"]} {count_word} require a higher grade than Grade {grade}. Grade eligibility is informational and can’t be relaxed here.</div>',
         unsafe_allow_html=True,
     )
-
 if filter_counts["deadline_passed"]:
-    count_word = (
-        "listing" if filter_counts["deadline_passed"] == 1 else "listings"
-    )
+    count_word = "listing" if filter_counts["deadline_passed"] == 1 else "listings"
     st.markdown(
-        f'<div class="filter-explainer">'
-        f'{filter_counts["deadline_passed"]} {count_word} have a past '
-        f'deadline.</div>',
+        f'<div class="filter-explainer">{filter_counts["deadline_passed"]} {count_word} have a past deadline.</div>',
         unsafe_allow_html=True,
     )
-
 if filter_counts["budget_unconfirmed"]:
-    count_word = (
-        "listing"
-        if filter_counts["budget_unconfirmed"] == 1
-        else "listings"
-    )
-    st.markdown(
-        f'<div class="filter-explainer">'
-        f'{filter_counts["budget_unconfirmed"]} currently eligible '
-        f'{count_word} have a team fee or unconfirmed cost.</div>',
-        unsafe_allow_html=True,
-    )
-
+    st.caption(f"{filter_counts['budget_unconfirmed']} currently eligible listing(s) have a team fee or unconfirmed cost.")
 
 relax_options = [
-    (
-        "over_budget",
-        f"{filter_counts['over_budget']} over budget",
-        "relax_budget",
-        "Include listings over budget",
-    ),
-    (
-        "different_type",
-        f"{filter_counts['different_type']} other types",
-        "relax_type",
-        "Include all opportunity types",
-    ),
-    (
-        "deadline_passed",
-        f"{filter_counts['deadline_passed']} past deadline",
-        "relax_deadline",
-        "Include closed listings",
-    ),
+    ("over_budget", f"{filter_counts['over_budget']} over budget", "relax_budget", "Include listings over budget"),
+    ("different_type", f"{filter_counts['different_type']} other types", "relax_type", "Include all opportunity types"),
+    ("deadline_passed", f"{filter_counts['deadline_passed']} past deadline", "relax_deadline", "Include closed listings"),
 ]
-
-active_relax = [
-    label
-    for _, label, state_key, _ in relax_options
-    if st.session_state.get(state_key, False)
-]
-
+active_relax = [label for _, label, state_key, _ in relax_options if st.session_state.get(state_key, False)]
 with st.container(key="relaxers"):
     if any(filter_counts[key] for key, _, _, _ in relax_options) or active_relax:
-        st.markdown(
-            '<div class="compact-note"><strong>Try widening your '
-            "search</strong></div>",
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            '<div class="filter-explainer">Counts are independent and may '
-            "overlap when a listing misses more than one filter.</div>",
-            unsafe_allow_html=True,
-        )
-
+        st.markdown('<div class="compact-note"><strong>Keep exploring</strong> · Widen your search without losing your current filters.</div>', unsafe_allow_html=True)
         relax_cols = st.columns(3)
-
-        for col, (count_key, label, state_key, action) in zip(
-            relax_cols,
-            relax_options,
-        ):
-            if filter_counts[count_key] or st.session_state.get(
-                state_key,
-                False,
-            ):
-                button_text = (
-                    f"✓ Showing {label}"
-                    if st.session_state.get(state_key, False)
-                    else f"{label} · show"
-                )
-
-                if col.button(
-                    button_text,
-                    key=f"toggle_{state_key}",
-                    help=action,
-                ):
-                    st.session_state[state_key] = not st.session_state.get(
-                        state_key,
-                        False,
-                    )
+        for col, (count_key, label, state_key, action) in zip(relax_cols, relax_options):
+            if filter_counts[count_key] or st.session_state.get(state_key, False):
+                text = f"✓ Showing {label}" if st.session_state.get(state_key, False) else f"{label} · show"
+                if col.button(text, key=f"toggle_{state_key}", help=action):
+                    st.session_state[state_key] = not st.session_state.get(state_key, False)
                     st.rerun()
 
-
-st.markdown(
-    '<h2 class="section-title">Opportunities</h2>',
-    unsafe_allow_html=True,
-)
-
+st.markdown('<h2 class="section-title">Opportunities</h2>', unsafe_allow_html=True)
 if results:
     for index, opp in enumerate(results):
         render_card(opp, index, saved_names)
 else:
-    st.info(
-        "No opportunities match these filters yet. "
-        "Try widening your search or resetting your filters."
-    )
-
-    if (
-        st.session_state.get("include_saved_only", False)
-        and not saved_names
-    ):
+    st.info("No opportunities match these filters yet. Try widening your search or resetting your filters.")
+    if st.session_state.get("include_saved_only", False) and not saved_names:
         st.caption("Save an opportunity with the Save button to build your list.")
-
     st.button("Reset filters", key="empty_reset", on_click=reset_filters)
-
 
 with st.expander("How matching works"):
     st.write(
-        "Grade, budget, deadline, and opportunity type determine eligibility. "
-        "Your interests and format preference determine ranking; the ranking "
-        "formula is unchanged. A known individual cost must fit your budget. "
-        "Team fees and unconfirmed costs remain visible with a reminder to "
-        "confirm the price. Saved-only and Free-only further narrow the "
-        "displayed results. Relaxers temporarily include over-budget, "
-        "other-type, or closed listings, while a higher-grade requirement "
-        "remains informational."
+        "Grade, budget, deadline, and opportunity type determine eligibility. Your interests and format preference determine ranking; the ranking formula is unchanged. A known individual cost must fit your budget. Team fees and unconfirmed costs remain visible with a reminder to confirm the price. Saved-only and Free-only further narrow the displayed results. Relaxers temporarily include over-budget, other-type, or closed listings, while a higher-grade requirement remains informational."
     )
