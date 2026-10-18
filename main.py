@@ -577,12 +577,13 @@ with st.sidebar:
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
     chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
     budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
-    st.caption("Drag the gold handle, or focus it and use the arrow keys. Steps: $50.")
     st.markdown(
         f'<div class="sidebar-budget"><strong>Up to ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
-        f'<div class="sidebar-budget"><strong>Current limit: ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
         unsafe_allow_html=True,
     )
+    st.caption("Drag the gold handle, or focus it and use the arrow keys. Steps: $50.")
+    budget_summary = f'<div class="sidebar-budget"><strong>Current limit: ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>'
+    st.markdown(budget_summary, unsafe_allow_html=True)
     st.checkbox("Free only", key="free_only")
     st.caption("Team fees and unconfirmed costs are surfaced for you to check with the organizer.")
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
