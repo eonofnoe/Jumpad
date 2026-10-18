@@ -84,9 +84,33 @@ st.markdown(
   color: #fffdf7 !important;
 }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder { color: rgba(240, 247, 240, .45); }
+/* Keep the interest picker fully opaque and make its menu affordance easy to spot. */
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+  background: #214b40 !important;
+  border-color: #91b9a7 !important;
+}
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"]:hover > div,
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"]:focus-within > div {
+  border-color: #f5bf48 !important;
+  box-shadow: 0 0 0 3px rgba(245, 191, 72, .2) !important;
+}
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] svg {
+  opacity: 1 !important;
+  color: #f5bf48 !important;
+  fill: #f5bf48 !important;
+  stroke: #f5bf48 !important;
+}
+.interest-picker-cue {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0 0 7px; padding: 5px 9px; border-radius: 8px;
+  background: #f5bf48; color: #17382f; font-size: .72rem;
+  font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+}
+.interest-picker-cue span { font-size: 1rem; line-height: .8; }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] span,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] svg,
 [data-testid="stSidebar"] [data-testid="stMultiSelect"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
+[data-testid="stSidebar"] [data-testid="stSelectbox"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--sun) !important; box-shadow: 0 0 0 3px rgba(245, 191, 72, .16) !important; }
 [data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] { background: var(--sun); border-color: var(--sun); }
@@ -510,12 +534,15 @@ with st.sidebar:
             st.button("Clear all", key="clear_all", on_click=set_all_subjects, args=(False,), help="Clear selected interests")
     if "selected_subjects" not in st.session_state:
         st.session_state["selected_subjects"] = ["Computer Science"]
+    st.markdown('<div class="interest-picker-cue">Click here <span>↓</span> to choose interests</div>', unsafe_allow_html=True)
     st.multiselect(
         "Choose one or more interests",
         SUBJECTS,
         key="selected_subjects",
         placeholder="Select interests…",
         help="Choose the subjects you want to explore. Select all and Clear all are available above.",
+        help="Click the field to open the list, then choose one or more subjects.",
+        label_visibility="collapsed",
     )
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
     chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
