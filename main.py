@@ -75,9 +75,7 @@ st.markdown(
 .sidebar-divider { height: 1px; margin: 1.35rem 0; background: rgba(214, 238, 225, .18); }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
 [data-testid="stSidebar"] [data-testid="stSlider"] > div > div {
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
   background: rgba(255, 255, 255, .08) !important;
   border: 1px solid rgba(220, 242, 230, .24) !important;
   border-radius: 12px !important;
@@ -85,76 +83,21 @@ st.markdown(
   color: #fffdf7 !important;
 }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder { color: rgba(240, 247, 240, .45); }
-/* Keep the interest picker fully opaque and make its menu affordance easy to spot. */
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
-  background: #214b40 !important;
-  border-color: #91b9a7 !important;
-}
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"]:hover > div,
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"]:focus-within > div {
-  border-color: #f5bf48 !important;
-  box-shadow: 0 0 0 3px rgba(245, 191, 72, .2) !important;
-}
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] svg {
-  opacity: 1 !important;
-  color: #f5bf48 !important;
-  fill: #f5bf48 !important;
-  stroke: #f5bf48 !important;
-}
-.interest-picker-cue {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin: 0 0 7px; padding: 5px 9px; border-radius: 8px;
-  background: #f5bf48; color: #17382f; font-size: .72rem;
-  font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-}
-.interest-picker-cue span { font-size: 1rem; line-height: .8; }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] span,
-[data-testid="stSidebar"] [data-testid="stSelectbox"] svg,
-[data-testid="stSidebar"] [data-testid="stMultiSelect"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--sun) !important; box-shadow: 0 0 0 3px rgba(245, 191, 72, .16) !important; }
 [data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] { background: var(--sun); border-color: var(--sun); }
 [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"],
 [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] { color: #d8eadf; }
-/* A distinct budget control that stays visible against either app theme. */
-[data-testid="stSidebar"] .st-key-budget {
-  margin: 5px 0 0; padding: 12px 12px 7px;
-  border: 1px solid #568875; border-radius: 14px;
-  background: #153d34 !important;
-  box-shadow: inset 0 0 0 1px rgba(245, 191, 72, .12);
-}
-[data-testid="stSidebar"] .st-key-budget [data-testid="stWidgetLabel"] p,
-[data-testid="stSidebar"] .st-key-budget [data-testid="stWidgetLabel"] label {
-  color: #fffdf7 !important; font-size: .9rem; font-weight: 800;
-}
-[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] [role="slider"] {
-  width: 25px !important; height: 25px !important;
-  background: #ffd15d !important; border: 3px solid #102c25 !important;
-  box-shadow: 0 0 0 3px #ffd15d, 0 2px 8px rgba(0, 0, 0, .45) !important;
-  opacity: 1 !important; cursor: grab;
-}
-[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] [role="slider"]:active { cursor: grabbing; }
-[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] > div > div {
-  background-color: #91b9a7 !important; opacity: 1 !important;
-}
-[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] > div > div[style*="width"] {
-  background-color: #ffd15d !important;
-}
-[data-testid="stSidebar"] .st-key-budget [data-testid="stTickBar"],
-[data-testid="stSidebar"] .st-key-budget [data-testid="stThumbValue"] { color: #fff4cf !important; opacity: 1 !important; }
-[data-testid="stSidebar"] .st-key-budget:focus-within {
-  outline: 3px solid #ffd15d; outline-offset: 3px; border-color: #ffd15d;
-}
-.sidebar-budget { margin: 7px 0 5px; color: #d9e9df; font-size: .78rem; }
 [data-testid="stSidebar"] [data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p { color: #eef6f0 !important; }
 [data-testid="stSidebar"] [data-testid="stCheckbox"] > label > span:first-child { border-color: rgba(235, 249, 240, .55); }
 
 /* Streamlit controls */
-[data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div, [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+[data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div {
   min-height: 42px; border: 1px solid var(--line) !important; border-radius: 12px !important; background: var(--paper-2) !important; color: var(--ink) !important; box-shadow: none !important;
 }
-[data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within, [data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within { border-color: var(--aqua) !important; box-shadow: 0 0 0 3px rgba(67, 173, 145, .14) !important; }
+[data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--aqua) !important; box-shadow: 0 0 0 3px rgba(67, 173, 145, .14) !important; }
 [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label { color: var(--ink); font-size: .84rem; font-weight: 700; }
 [data-baseweb="popover"], [data-baseweb="menu"] { background: #fffdf8 !important; }
 [data-baseweb="menu"] li { color: var(--ink) !important; }
@@ -563,17 +506,20 @@ with st.sidebar:
             st.button("Select all", key="select_all", on_click=set_all_subjects, args=(True,), help="Select every interest")
         with link_col2:
             st.button("Clear all", key="clear_all", on_click=set_all_subjects, args=(False,), help="Clear selected interests")
+    # Checkboxes provide compact multi-select and avoid the empty "No results"
+    # dropdown that can remain open after selecting every option.
     if "selected_subjects" not in st.session_state:
         st.session_state["selected_subjects"] = ["Computer Science"]
-    st.markdown('<div class="interest-picker-cue">Click here <span>↓</span> to choose interests</div>', unsafe_allow_html=True)
-    st.multiselect(
-        "Choose one or more interests",
-        SUBJECTS,
-        key="selected_subjects",
-        placeholder="Select interests…",
-        help="Choose the subjects you want to explore. Select all and Clear all are available above.",
-        label_visibility="collapsed",
-    )
+    selected_before_run = set(st.session_state.get("selected_subjects", []))
+    for subject in SUBJECTS:
+        key = subject_key(subject)
+        if key not in st.session_state:
+            st.session_state[key] = subject in selected_before_run
+    interest_cols = st.columns(2)
+    for index, subject in enumerate(SUBJECTS):
+        with interest_cols[index % 2]:
+            st.checkbox(subject, key=subject_key(subject))
+    st.session_state["selected_subjects"] = [subject for subject in SUBJECTS if st.session_state.get(subject_key(subject), False)]
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
     chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
     budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
@@ -581,9 +527,6 @@ with st.sidebar:
         f'<div class="sidebar-budget"><strong>Up to ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
         unsafe_allow_html=True,
     )
-    st.caption("Drag the gold handle, or focus it and use the arrow keys. Steps: $50.")
-    budget_summary = f'<div class="sidebar-budget"><strong>Current limit: ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>'
-    st.markdown(budget_summary, unsafe_allow_html=True)
     st.checkbox("Free only", key="free_only")
     st.caption("Team fees and unconfirmed costs are surfaced for you to check with the organizer.")
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
