@@ -77,6 +77,7 @@ st.markdown(
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
 [data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
 [data-testid="stSidebar"] [data-testid="stSlider"] > div > div {
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
   background: rgba(255, 255, 255, .08) !important;
   border: 1px solid rgba(220, 242, 230, .24) !important;
   border-radius: 12px !important;
@@ -116,6 +117,36 @@ st.markdown(
 [data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] { background: var(--sun); border-color: var(--sun); }
 [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"],
 [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] { color: #d8eadf; }
+/* A distinct budget control that stays visible against either app theme. */
+[data-testid="stSidebar"] .st-key-budget {
+  margin: 5px 0 0; padding: 12px 12px 7px;
+  border: 1px solid #568875; border-radius: 14px;
+  background: #153d34 !important;
+  box-shadow: inset 0 0 0 1px rgba(245, 191, 72, .12);
+}
+[data-testid="stSidebar"] .st-key-budget [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] .st-key-budget [data-testid="stWidgetLabel"] label {
+  color: #fffdf7 !important; font-size: .9rem; font-weight: 800;
+}
+[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] [role="slider"] {
+  width: 25px !important; height: 25px !important;
+  background: #ffd15d !important; border: 3px solid #102c25 !important;
+  box-shadow: 0 0 0 3px #ffd15d, 0 2px 8px rgba(0, 0, 0, .45) !important;
+  opacity: 1 !important; cursor: grab;
+}
+[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] [role="slider"]:active { cursor: grabbing; }
+[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] > div > div {
+  background-color: #91b9a7 !important; opacity: 1 !important;
+}
+[data-testid="stSidebar"] .st-key-budget [data-baseweb="slider"] > div > div[style*="width"] {
+  background-color: #ffd15d !important;
+}
+[data-testid="stSidebar"] .st-key-budget [data-testid="stTickBar"],
+[data-testid="stSidebar"] .st-key-budget [data-testid="stThumbValue"] { color: #fff4cf !important; opacity: 1 !important; }
+[data-testid="stSidebar"] .st-key-budget:focus-within {
+  outline: 3px solid #ffd15d; outline-offset: 3px; border-color: #ffd15d;
+}
+.sidebar-budget { margin: 7px 0 5px; color: #d9e9df; font-size: .78rem; }
 [data-testid="stSidebar"] [data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p { color: #eef6f0 !important; }
 [data-testid="stSidebar"] [data-testid="stCheckbox"] > label > span:first-child { border-color: rgba(235, 249, 240, .55); }
 
@@ -546,8 +577,10 @@ with st.sidebar:
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
     chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
     budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
+    st.caption("Drag the gold handle, or focus it and use the arrow keys. Steps: $50.")
     st.markdown(
         f'<div class="sidebar-budget"><strong>Up to ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
+        f'<div class="sidebar-budget"><strong>Current limit: ${budget:,}</strong><br>$0 <span style="float:right">$6,000</span></div>',
         unsafe_allow_html=True,
     )
     st.checkbox("Free only", key="free_only")
