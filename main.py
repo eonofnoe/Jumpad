@@ -75,6 +75,7 @@ st.markdown(
 .sidebar-divider { height: 1px; margin: 1.35rem 0; background: rgba(214, 238, 225, .18); }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
 [data-testid="stSidebar"] [data-testid="stSlider"] > div > div {
   background: rgba(255, 255, 255, .08) !important;
   border: 1px solid rgba(220, 242, 230, .24) !important;
@@ -84,7 +85,8 @@ st.markdown(
 }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder { color: rgba(240, 247, 240, .45); }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] span,
-[data-testid="stSidebar"] [data-testid="stSelectbox"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
+[data-testid="stSidebar"] [data-testid="stSelectbox"] svg,
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] svg { color: #fffdf7 !important; fill: #fffdf7 !important; }
 [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
 [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--sun) !important; box-shadow: 0 0 0 3px rgba(245, 191, 72, .16) !important; }
 [data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] { background: var(--sun); border-color: var(--sun); }
@@ -94,10 +96,10 @@ st.markdown(
 [data-testid="stSidebar"] [data-testid="stCheckbox"] > label > span:first-child { border-color: rgba(235, 249, 240, .55); }
 
 /* Streamlit controls */
-[data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+[data-testid="stTextInput"] input, [data-testid="stSelectbox"] [data-baseweb="select"] > div, [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
   min-height: 42px; border: 1px solid var(--line) !important; border-radius: 12px !important; background: var(--paper-2) !important; color: var(--ink) !important; box-shadow: none !important;
 }
-[data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within { border-color: var(--aqua) !important; box-shadow: 0 0 0 3px rgba(67, 173, 145, .14) !important; }
+[data-testid="stTextInput"] input:focus, [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within, [data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within { border-color: var(--aqua) !important; box-shadow: 0 0 0 3px rgba(67, 173, 145, .14) !important; }
 [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] label { color: var(--ink); font-size: .84rem; font-weight: 700; }
 [data-baseweb="popover"], [data-baseweb="menu"] { background: #fffdf8 !important; }
 [data-baseweb="menu"] li { color: var(--ink) !important; }
@@ -506,20 +508,15 @@ with st.sidebar:
             st.button("Select all", key="select_all", on_click=set_all_subjects, args=(True,), help="Select every interest")
         with link_col2:
             st.button("Clear all", key="clear_all", on_click=set_all_subjects, args=(False,), help="Clear selected interests")
-    # Checkboxes provide compact multi-select and avoid the empty "No results"
-    # dropdown that can remain open after selecting every option.
     if "selected_subjects" not in st.session_state:
         st.session_state["selected_subjects"] = ["Computer Science"]
-    selected_before_run = set(st.session_state.get("selected_subjects", []))
-    for subject in SUBJECTS:
-        key = subject_key(subject)
-        if key not in st.session_state:
-            st.session_state[key] = subject in selected_before_run
-    interest_cols = st.columns(2)
-    for index, subject in enumerate(SUBJECTS):
-        with interest_cols[index % 2]:
-            st.checkbox(subject, key=subject_key(subject))
-    st.session_state["selected_subjects"] = [subject for subject in SUBJECTS if st.session_state.get(subject_key(subject), False)]
+    st.multiselect(
+        "Choose one or more interests",
+        SUBJECTS,
+        key="selected_subjects",
+        placeholder="Select interests…",
+        help="Choose the subjects you want to explore. Select all and Clear all are available above.",
+    )
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
     chosen_type = st.selectbox("Opportunity type", TYPES, key="chosen_type")
     budget = st.slider("Maximum budget", min_value=0, max_value=6000, value=500, step=50, format="$%d", key="budget")
