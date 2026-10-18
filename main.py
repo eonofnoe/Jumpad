@@ -541,7 +541,6 @@ with st.sidebar:
         key="selected_subjects",
         placeholder="Select interests…",
         help="Choose the subjects you want to explore. Select all and Clear all are available above.",
-        help="Click the field to open the list, then choose one or more subjects.",
         label_visibility="collapsed",
     )
     preferred_format = st.selectbox("Preferred format", FORMATS, key="preferred_format")
